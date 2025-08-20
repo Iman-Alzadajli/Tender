@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\InternalTender;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -243,6 +243,8 @@ class InternalTender extends Component
             echo $pdf->output();
         }, 'tenders-report-' . now()->format('Y-m-d') . '.pdf');
     }
+
+    
 
     
 

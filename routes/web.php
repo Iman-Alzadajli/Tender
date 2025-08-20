@@ -4,9 +4,9 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 
-use App\Livewire\InternalTender;
-use App\Livewire\ETender;
-use App\Livewire\OtherTenderPlatform;
+use App\Livewire\InternalTender\InternalTender;
+use App\Livewire\ETender\ETender;
+use App\Livewire\OtherTenderPlatform\OtherTenderPlatform;
 
 
 
