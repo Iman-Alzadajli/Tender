@@ -10,6 +10,6 @@ class OtherTenderPlatform extends Component
 {
     public function render()
     {
-        return view('livewire.other-tender-platform');
+        return view('livewire.othertenderplatform.other-tender-platform');
     }
 }

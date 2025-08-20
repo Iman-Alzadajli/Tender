@@ -235,7 +235,7 @@ class InternalTender extends Component
         $tendersToExport = $query->latest('date_of_purchase')->get();
 
         // 2. قم بإنشاء الـ PDF
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('livewire.tender-pdf', ['tenders' => $tendersToExport]);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('livewire.internaltender.tender-pdf', ['tenders' => $tendersToExport]);
 
         // 3. قم بتنزيل الملف
         // stream() لعرضه في المتصفح, download() لتحميله مباشرة
@@ -266,7 +266,7 @@ class InternalTender extends Component
         $uniqueClients = Tender::select('client_type')->whereNotNull('client_type')->distinct()->pluck('client_type');
         $uniqueAssignees = Tender::select('assigned_to')->whereNotNull('assigned_to')->distinct()->pluck('assigned_to');
 
-        return view('livewire.internal-tender', [
+        return view('livewire.internaltender.internal-tender', [
             'tenders' => $tenders,
             'uniqueClients' => $uniqueClients,
             'uniqueAssignees' => $uniqueAssignees,
