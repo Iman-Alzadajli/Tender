@@ -1,0 +1,45 @@
+<?php
+
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
+
+
+use App\Livewire\InternalTender;
+use App\Livewire\ETender;
+use App\Livewire\OtherTenderPlatform;
+
+
+
+
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';
+
+
+
+// the 3 pages 
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/internal-tender', InternalTender::class)->name('internal-tender');
+});
+
+
+
+
+Route::get('/e-tender', ETender::class)->name('e-tender');
+Route::get('/other-tender-platform', OtherTenderPlatform::class)->name('other-tender-platform');
+
