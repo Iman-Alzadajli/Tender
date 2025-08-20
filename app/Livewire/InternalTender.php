@@ -7,15 +7,16 @@ use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use App\Models\InternalTender as Tender;
 use Illuminate\Validation\Rule;
+use PDF;
 
 #[Layout('layouts.app')]
 class InternalTender extends Component
 {
-    use WithPagination;
+    use WithPagination; //ترقيم
 
-    // ▼▼▼▼▼▼ هذا هو المكان الصحيح لإضافة السطر ▼▼▼▼▼▼
-    protected $paginationTheme = 'bootstrap';
-    // ▲▲▲▲▲▲ نهاية السطر المضاف ▲▲▲▲▲▲
+  
+    protected $paginationTheme = 'bootstrap'; //ستايل الترقيم 
+ 
 
     // خصائص الواجهة الرئيسية
     public string $search = '';
@@ -40,7 +41,7 @@ class InternalTender extends Component
     public string $reviewed_by = '';
     public string $date_of_submission_ba = '';
     //
-   // public string $
+ 
 
 
     //
@@ -52,9 +53,8 @@ class InternalTender extends Component
     public string $status = 'Pending';
     public string $reason_of_decline = '';
     public string $quarter = '';
-    public array $focalPoints = [];
+    public array $focalPoints = []; // for focalpoint (Person) 
 
-    // ... (باقي الكود يبقى كما هو بدون أي تغيير) ...
     
     protected function rules(): array
     {
@@ -112,17 +112,19 @@ class InternalTender extends Component
 
     public function prepareModal(string $mode, ?int $tenderId = null): void
     {
-        $this->resetValidation();
-        $this->resetForm();
+        $this->resetValidation(); // امسح فالديشن القديم 
+        $this->resetForm();// امسح فيلدس 
         $this->mode = $mode;
 
-        if ($tenderId) {
+        if ($tenderId) { // في حالة موجودة بيانات فوكل و بيانات جدول في داتا اعرضهم 
             $this->currentTender = Tender::with('focalPoints')->findOrFail($tenderId);
             $this->fillForm($this->currentTender);
         }
 
         $this->showModal = true;
     }
+
+    // لما تكون فاضية و قيم الافتراضية 
 
     public function resetForm(): void
     {
@@ -137,6 +139,7 @@ class InternalTender extends Component
         $this->focalPoints = [['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => '']];
     }
 
+    // تعبئة 
     public function fillForm(Tender $tender): void
     {
         $this->name = $tender->name;
@@ -159,6 +162,8 @@ class InternalTender extends Component
         
     }
 
+    // احفظ 
+
     public function save(): void
     {
         $validatedData = $this->validate();
@@ -178,6 +183,7 @@ class InternalTender extends Component
 
         $tenderData = collect($validatedData)->except('focalPoints')->toArray();
 
+         
         if ($this->mode === 'add') {
             $tender = Tender::create($tenderData);
             if (!empty($validatedData['focalPoints'])) {
@@ -209,18 +215,52 @@ class InternalTender extends Component
         }
     }
 
-    public function render()
+    //pdf
+
+     public function exportPdf()
+    {
+        // 1. احصل على البيانات بنفس منطق الفلترة المستخدم في دالة render
+        $query = Tender::query();
+        if ($this->search) {
+            $query->where(fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('client_type', 'like', "%{$this->search}%"));
+        }
+        if ($this->quarterFilter) { 
+            $query->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]);
+        }
+        if ($this->statusFilter) { $query->where('status', $this->statusFilter); }
+        if ($this->assignedFilter) { $query->where('assigned_to', $this->assignedFilter); }
+        if ($this->clientFilter) { $query->where('client_type', 'like', "%{$this->clientFilter}%"); }
+
+        // احصل على كل النتائج بدون ترقيم الصفحات
+        $tendersToExport = $query->latest('date_of_purchase')->get();
+
+        // 2. قم بإنشاء الـ PDF
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('livewire.tender-pdf', ['tenders' => $tendersToExport]);
+
+        // 3. قم بتنزيل الملف
+        // stream() لعرضه في المتصفح, download() لتحميله مباشرة
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, 'tenders-report-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    
+
+    // للبحث 
+     public function render()
     {
         $query = Tender::query();
         if ($this->search) {
             $query->where(fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('client_type', 'like', "%{$this->search}%"));
         }
-        if ($this->quarterFilter) { $query->where('quarter', $this->quarterFilter); }
+        if ($this->quarterFilter) { 
+            $query->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]);
+        }
         if ($this->statusFilter) { $query->where('status', $this->statusFilter); }
         if ($this->assignedFilter) { $query->where('assigned_to', $this->assignedFilter); }
         if ($this->clientFilter) { $query->where('client_type', 'like', "%{$this->clientFilter}%"); }
 
-        $tenders = $query->latest('date_of_purchase')->paginate(5);
+        $tenders = $query->latest('date_of_purchase')->paginate(5); //عدد الصفوف  في جدول 
         $uniqueClients = Tender::select('client_type')->whereNotNull('client_type')->distinct()->pluck('client_type');
         $uniqueAssignees = Tender::select('assigned_to')->whereNotNull('assigned_to')->distinct()->pluck('assigned_to');
 

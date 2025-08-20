@@ -26,9 +26,10 @@
                     <button wire:click="prepareModal('add')" class="btn btn-primary">
                         <i class="bi bi-plus-lg me-2"></i>Add Tender
                     </button>
-                    <button class="btn btn-outline-secondary">
-                        <i class="bi bi-download me-2"></i>Export PDF
+                    <button wire:click="exportPdf" class="btn btn-outline-secondary">
+                    <i class="bi bi-download me-2"></i>Export PDF
                     </button>
+
                 </div>
                 <div class="input-group" style="max-width: 350px;">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -45,7 +46,7 @@
             @if ($showFilters)
                 <div class="row g-3 mt-2 pt-3 border-top">
                     <div class="col-sm-6 col-md-3"><select wire:model.live="quarterFilter" class="form-select"><option value="">All Quarters</option><option value="Q1">Q1</option><option value="Q2">Q2</option><option value="Q3">Q3</option><option value="Q4">Q4</option></select></div>
-                    <div class="col-sm-6 col-md-3"><select wire:model.live="statusFilter" class="form-select"><option value="">All Statuses</option><option value="Pending">Pending</option><option value="Approved">Approved</option><option value="Declined">Declined</option></select></div>
+                    <div class="col-sm-6 col-md-3"><select wire:model.live="statusFilter" class="form-select"><option value="">All Statuses</option><option value="Pending">Pending</option><option value="Open">Open</option><option value="Under Evaluation">Under Evaluation</option><option value="Close">Close</option><option value="Declined">Declined</option></select></div>
                     <div class="col-sm-6 col-md-3"><select wire:model.live="assignedFilter" class="form-select"><option value="">All Assignees</option>@foreach ($uniqueAssignees as $assignee)<option value="{{ $assignee }}">{{ $assignee }}</option>@endforeach</select></div>
                     <div class="col-sm-6 col-md-3"><select wire:model.live="clientFilter" class="form-select"><option value="">All Client Types</option>@foreach ($uniqueClients as $client)<option value="{{ $client }}">{{ $client }}</option>@endforeach</select></div>
                 </div>
@@ -83,11 +84,22 @@
                             <td><span class="badge bg-info-subtle text-info-emphasis rounded-pill">{{ $tender->quarter }}</span></td>
                             <td>
                                 <span class="badge rounded-pill
-                                    @if($tender->status == 'Approved') bg-success-subtle text-success-emphasis
-                                    @elseif($tender->status == 'Pending') bg-warning-subtle text-warning-emphasis
-                                    @else bg-danger-subtle text-danger-emphasis @endif">
-                                    {{ $tender->status }}
+                                  @if($tender->status == 'Approved') 
+                                   bg-success-subtle text-success-emphasis
+                                  @elseif($tender->status == 'Pending') 
+                                   bg-warning-subtle text-warning-emphasis
+                                  @elseif($tender->status == 'Open')
+                                   bg-primary-subtle text-primary-emphasis
+                                  @elseif($tender->status == 'Under Evaluation')
+                                   bg-info-subtle text-info-emphasis
+                                  @elseif($tender->status == 'Close')
+                                   bg-secondary-subtle text-secondary-emphasis
+                                  @else {{-- هذه الحالة ستكون لـ Declined وأي حالة أخرى --}}
+                                   bg-danger-subtle text-danger-emphasis 
+                                  @endif">
+                                   {{ $tender->status }}
                                 </span>
+
                             </td>
                             <td class="text-end">
                                 <div class="btn-group">
@@ -169,7 +181,7 @@
 
                                 <div class="col-md-6">
 
-                                 <div><label class="form-label">Date of Submission of BA <span class="text-danger">*</span></label><input type="date" wire:model="date_of_submission_ba" class="form-control @error('date_of_submission_ba') is-invalid @enderror" @if($mode == 'view') readonly @endif>@error('date_of_submission_ba')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                 <div><label class="form-label">Date of Submission of Business analysis <span class="text-danger">*</span></label><input type="date" wire:model="date_of_submission_ba" class="form-control @error('date_of_submission_ba') is-invalid @enderror" @if($mode == 'view') readonly @endif>@error('date_of_submission_ba')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
                                  <div><label class="form-label">Date of Submission after Review <span class="text-danger">*</span></label><input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" @if($mode == 'view') readonly @endif>@error('date_of_submission_after_review')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
 
                                 </div>
@@ -182,6 +194,7 @@
                             <hr class="my-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="mb-0 fw-bold">Focal Points <span class="text-danger">*</span></h6>
+                                <!--btn for add person-->
                                 @if($mode != 'view')<button wire:click.prevent="addFocalPoint" type="button" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus"></i> Add Person</button>@endif
                             </div>
                             @error('focalPoints')<div class="alert alert-danger p-2 mb-3">{{ $message }}</div>@enderror
@@ -191,6 +204,8 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <span class="fw-bold">Person {{ $index + 1 }}</span>
             @if($mode != 'view')
+
+            <!--btn for remove person-->
                 <button wire:click.prevent="removeFocalPoint({{ $index }})" type="button" class="btn-close" title="Remove Person"></button>
             @endif
         </div>
@@ -313,4 +328,3 @@
     @endif
 </div>
 
-<!-- فيه مشكلة بس صح نسيبا--> 

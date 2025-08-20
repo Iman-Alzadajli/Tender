@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Casts\Attribute; // <-- أضف هذا السطر
+use Illuminate\Database\Eloquent\Casts\Attribute; 
 
 class InternalTender extends Model
 {
@@ -16,7 +16,7 @@ class InternalTender extends Model
     protected $fillable = [
         'name',
         'number',
-        'client_type', // <-- تم تغيير الاسم
+        'client_type', 
         'assigned_to',
         'date_of_purchase',
         'date_of_submission',
@@ -29,8 +29,10 @@ class InternalTender extends Model
         'follow_up_notes',
         'status',
         'reason_of_decline',
-        // 'quarter' تم حذفه من هنا
+       
     ];
+
+    //لتحديد انواع الداتا لهذه الأعمدة 
 
     protected $casts = [
         'date_of_purchase' => 'date',
@@ -42,8 +44,8 @@ class InternalTender extends Model
     ];
 
     /**
-     * ▼▼▼▼▼▼ هذا هو الجزء الجديد لحساب الربع السنوي تلقائيًا ▼▼▼▼▼▼
-     * Accessor to get the quarter from the date_of_submission.
+     * هذا هو الجزء الجديد لحساب الربع السنوي تلقائيًا
+     * عمود افتراضي 
      */
     protected function quarter(): Attribute
     {
@@ -51,7 +53,8 @@ class InternalTender extends Model
             get: fn () => 'Q' . ceil($this->date_of_submission->month / 3),
         );
     }
-    // ▲▲▲▲▲▲ نهاية الجزء الجديد ▲▲▲▲▲▲
+ 
+    //علاقة 
 
     public function focalPoints(): HasMany
     {
