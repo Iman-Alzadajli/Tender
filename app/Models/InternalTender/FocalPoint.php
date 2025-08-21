@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\InternalTender;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class FocalPoint extends Model
+class FocalPoint extends Model 
 {
     use HasFactory;
 

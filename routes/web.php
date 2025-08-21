@@ -38,8 +38,14 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/e-tender', ETender::class)->name('e-tender');
+});
 
 
-Route::get('/e-tender', ETender::class)->name('e-tender');
+
+
+
+
 Route::get('/other-tender-platform', OtherTenderPlatform::class)->name('other-tender-platform');
 

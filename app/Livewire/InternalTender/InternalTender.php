@@ -5,9 +5,9 @@ namespace App\Livewire\InternalTender;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
-use App\Models\InternalTender as Tender;
+use App\Models\InternalTender\InternalTender as Tender;
 use Illuminate\Validation\Rule;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 #[Layout('layouts.app')]
 class InternalTender extends Component
@@ -217,31 +217,29 @@ class InternalTender extends Component
 
     //pdf
 
-     public function exportPdf()
+  public function exportPdf()
     {
-        // 1. احصل على البيانات بنفس منطق الفلترة المستخدم في دالة render
-        $query = Tender::query();
-        if ($this->search) {
-            $query->where(fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('client_type', 'like', "%{$this->search}%"));
-        }
-        if ($this->quarterFilter) { 
-            $query->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]);
-        }
-        if ($this->statusFilter) { $query->where('status', $this->statusFilter); }
-        if ($this->assignedFilter) { $query->where('assigned_to', $this->assignedFilter); }
-        if ($this->clientFilter) { $query->where('client_type', 'like', "%{$this->clientFilter}%"); }
+        // 1. بناء الاستعلام مع نفس الفلاتر المستخدمة في العرض
+        $query = Tender::query()
+            ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('client_type', 'like', "%{$this->search}%"))
+            ->when($this->quarterFilter, fn($q) => $q->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]))
+            ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter))
+            ->when($this->assignedFilter, fn($q) => $q->where('assigned_to', $this->assignedFilter))
+            ->when($this->clientFilter, fn($q) => $q->where('client_type', 'like', "%{$this->clientFilter}%"));
 
-        // احصل على كل النتائج بدون ترقيم الصفحات
+        // 2. جلب كل البيانات التي تطابق الفلاتر (بدون ترقيم صفحات)
         $tendersToExport = $query->latest('date_of_purchase')->get();
 
-        // 2. قم بإنشاء الـ PDF
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('livewire.internaltender.tender-pdf', ['tenders' => $tendersToExport]);
+        // 3. إنشاء ملف الـ PDF وتمرير البيانات إليه
+        $pdf = Pdf::loadView('livewire.internaltender.tender-pdf', [
+            'tenders' => $tendersToExport
+        ]);
 
-        // 3. قم بتنزيل الملف
-        // stream() لعرضه في المتصفح, download() لتحميله مباشرة
+        // 4. إرسال الـ PDF إلى المتصفح ليتم تحميله
+        //    استخدام streamDownload أفضل لأنه لا ينشئ ملفات مؤقتة على الخادم
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
-        }, 'tenders-report-' . now()->format('Y-m-d') . '.pdf');
+        }, 'Tenders-Report-' . now()->format('Y-m-d') . '.pdf');
     }
 
     

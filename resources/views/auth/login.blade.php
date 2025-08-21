@@ -62,10 +62,17 @@
                     </a>
                 @endif
 
+
+
                 <button type="submit" class="btn btn-gradient">
                     Log in
                 </button>
             </div>
+
+              <!-- <a style="color: black;"  class="text-gradient text-decoration-none small px-5" href="{{ route('register') }}">
+                    Register
+                </a> -->
+
         </form>
     </div>
 </x-guest-layout>

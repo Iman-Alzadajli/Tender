@@ -26,9 +26,15 @@
                     <button wire:click="prepareModal('add')" class="btn btn-primary">
                         <i class="bi bi-plus-lg me-2"></i>Add Tender
                     </button>
+
+                    
                     <button wire:click="exportPdf" class="btn btn-outline-secondary">
                     <i class="bi bi-download me-2"></i>Export PDF
-                    </button>
+                    {{-- لإظهار علامة التحميل أثناء التصدير --}}
+                    <div wire:loading wire:target="exportPdf" class="spinner-border spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </button>
 
                 </div>
                 <div class="input-group" style="max-width: 350px;">
