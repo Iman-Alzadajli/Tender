@@ -34,7 +34,7 @@
             width: 280px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);   
             transition: all 0.3s ease;
-            /* z-index: 1000; */
+            z-index:  1030; 
             overflow-y: auto;
         }
 
@@ -165,13 +165,13 @@
         }
         
         .sidebar-overlay {
-            /* position: fixed; */
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
+            z-index: 1029;
             display: none;
         }
         
