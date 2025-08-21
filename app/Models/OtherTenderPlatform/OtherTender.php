@@ -1,20 +1,37 @@
 <?php
 
-namespace App\Models\ETender;
+namespace App\Models\OtherTenderPlatform;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\OtherTenderPlatform\FocalPointO; 
 
-class ETender extends Model
+class OtherTender extends Model
 {
     use HasFactory;
 
-    // السماح بالحفظ الجماعي لجميع الحقول
-    protected $guarded = [];
+    protected $table = 'other_tenders';
 
-    // تحويل تواريخ طؤيقة كتابة 
+    protected $fillable = [
+        'name',
+        'number',
+        'client_type',
+        'assigned_to',
+        'date_of_purchase',
+        'date_of_submission',
+        'reviewed_by',
+        'date_of_submission_ba',
+        'date_of_submission_after_review',
+        'has_third_party',
+        'last_follow_up_date',
+        'follow_up_channel',
+        'follow_up_notes',
+        'status',
+        'reason_of_decline',
+    ];
+
     protected $casts = [
         'date_of_purchase' => 'date',
         'date_of_submission' => 'date',
@@ -31,9 +48,11 @@ class ETender extends Model
         );
     }
 
-    //  علاقات 
+    /**
+     * Get the focal points for the tender.
+     */
     public function focalPoints(): HasMany
     {
-        return $this->hasMany(FocalPointE::class, 'e_tender_id');
+        return $this->hasMany(FocalPointO::class, 'other_tender_id');
     }
 }

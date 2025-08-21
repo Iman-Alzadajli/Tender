@@ -7,6 +7,9 @@
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
+    <!-- logo-->
+     
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -29,11 +32,13 @@
             left: 0;
             height: 100vh;
             width: 280px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);   
             transition: all 0.3s ease;
             /* z-index: 1000; */
             overflow-y: auto;
         }
+
+        
         
         .sidebar.collapsed {
             width: 80px;

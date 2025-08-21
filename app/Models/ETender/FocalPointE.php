@@ -12,7 +12,6 @@ class FocalPointE extends Model
 
     protected $guarded = [];
 
-    // العلاقة العكسية مع المناقصة
     public function eTender(): BelongsTo
     {
         return $this->belongsTo(ETender::class, 'e_tender_id');

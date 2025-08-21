@@ -12,6 +12,7 @@ use App\Livewire\OtherTenderPlatform\OtherTenderPlatform;
 
 
 
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -48,4 +49,9 @@ Route::middleware(['auth'])->group(function () {
 
 
 Route::get('/other-tender-platform', OtherTenderPlatform::class)->name('other-tender-platform');
+
+//excel 
+
+// Route::get('/othertenderplatform/ExcelOther', [OtherTenderPlatform::class, 'exportSimpleExcel'])->name('export.other.excel');
+
 

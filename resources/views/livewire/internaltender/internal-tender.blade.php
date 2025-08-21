@@ -1,7 +1,5 @@
 <div>
-    {{-- ================================================== --}}
-    {{--  1. رأس الصفحة (Header)                       --}}
-    {{-- ================================================== --}}
+    {{--(Header)--}}
     <x-slot name="header">
         <h2 class="h4 font-weight-bold">
             Tender Management
@@ -16,9 +14,9 @@
         </div>
     @endif
 
-    {{-- ================================================== --}}
-    {{--  2. صندوق البحث والفلاتر (Filters)             --}}
-    {{-- ================================================== --}}
+    
+    {{--(Filters)--}}
+
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
@@ -30,11 +28,20 @@
                     
                     <button wire:click="exportPdf" class="btn btn-outline-secondary">
                     <i class="bi bi-download me-2"></i>Export PDF
-                    {{-- لإظهار علامة التحميل أثناء التصدير --}}
+                
                     <div wire:loading wire:target="exportPdf" class="spinner-border spinner-border-sm" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </button>
+
+                 {{--excel --}}
+              
+                    <button wire:click="exportSimpleExcel" class="btn btn-success">
+                        <span wire:loading wire:target="exportSimpleExcel" class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </span>
+                        <i class="bi bi-file-earmark-excel"></i> Export Excel
+                    </button>
 
                 </div>
                 <div class="input-group" style="max-width: 350px;">
@@ -60,9 +67,9 @@
         </div>
     </div>
 
-    {{-- ================================================== --}}
-    {{--  3. الجدول (Table)                             --}}
-    {{-- ================================================== --}}
+  
+    {{--(Table)--}}
+ 
     <div class="card shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
@@ -128,9 +135,9 @@
         @endif
     </div>
 
-    {{-- ================================================== --}}
-    {{--  4. النافذة المنبثقة (Modal)                     --}}
-    {{-- ================================================== --}}
+    
+    {{--  4. النافذة المنبثقة او بوب --}}
+
     @if ($showModal)
         <div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);">
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -193,8 +200,6 @@
                                 </div>
 
                               
-
-
                                 
                             </div>
                             <hr class="my-4">
@@ -295,7 +300,7 @@
                                 </div>
                                 <div class="col-12"><label class="form-label">Notes from Follow-up</label><textarea wire:model="follow_up_notes" class="form-control" rows="3" @if($mode == 'view') readonly @endif></textarea></div>
                                 
-                                {{-- ▼▼▼▼▼▼ هذا هو الجزء الذي تم تعديله ▼▼▼▼▼▼ --}}
+           
                                 <div class="col-md-6">
                                     <label class="form-label">Status <span class="text-danger">*</span></label>
                                     <select wire:model.live="status" class="form-select @error('status') is-invalid @enderror" @if($mode == 'view') disabled @endif>
@@ -315,8 +320,9 @@
                                         @error('reason_of_decline')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                     </div>
                                 @endif
-                                {{-- ▲▲▲▲▲▲ نهاية الجزء الذي تم تعديله ▲▲▲▲▲▲ --}}
                             </div>
+
+                            
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" wire:click="$set('showModal', false)">@if($mode == 'view') Close @else Cancel @endif</button>

@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Tenders Report</title>
     <style>
-        /* أضفنا بعض التنسيقات الأساسية لتحسين شكل الـ PDF */
+        /*  شكل PDF */
         body {
             font-family: 'DejaVu Sans', sans-serif; /* خط يدعم اللغة العربية والرموز */
             font-size: 10px;
@@ -67,7 +67,6 @@
                     <td>{{ $tender->client_type ?? 'N/A' }}</td>
                     <td>{{ $tender->assigned_to ?? 'N/A' }}</td>
                     <td>
-                        {{-- استخدام عامل التشغيل الآمن لتجنب الخطأ إذا كان التاريخ فارغاً --}}
                         {{ $tender->date_of_submission?->format('d M, Y') ?? 'N/A' }}
                     </td>
                     <td>{{ $tender->status ?? 'N/A' }}</td>

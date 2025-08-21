@@ -1,7 +1,5 @@
 <div>
-    {{-- ================================================== --}}
-    {{--  1. رأس الصفحة (Header)                       --}}
-    {{-- ================================================== --}}
+    {{--رأس الصفحة (Header)--}}
     <x-slot name="header">
         <h2 class="h4 font-weight-bold">
             E-Tender Management
@@ -16,9 +14,9 @@
         </div>
     @endif
 
-    {{-- ================================================== --}}
-    {{--  2. صندوق البحث والفلاتر (Filters)             --}}
-    {{-- ================================================== --}}
+  
+    {{--صندوق البحث والفلاتر (Filters)--}}
+  
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
@@ -27,7 +25,7 @@
                         <i class="bi bi-plus-lg me-2"></i>Add E-Tender
 
                         
-                    {{-- ▼▼▼ هذا هو زر تصدير الـ PDF ▼▼▼ --}}
+                    {{--pdf btn--}}
                 <button wire:click="exportPdf" class="btn btn-outline-secondary">
                     <i class="bi bi-download me-2"></i>Export PDF
                     {{-- لإظهار علامة التحميل أثناء التصدير --}}
@@ -35,7 +33,16 @@
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </button>
-                {{-- ▲▲▲ نهاية زر تصدير الـ PDF ▲▲▲ --}}
+                
+
+                 {{--excel --}}
+              
+                    <button wire:click="exportSimpleExcel" class="btn btn-success">
+                        <span wire:loading wire:target="exportSimpleExcel" class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </span>
+                        <i class="bi bi-file-earmark-excel"></i> Export Excel
+                    </button>
 
                 
 
@@ -63,9 +70,9 @@
         </div>
     </div>
 
-    {{-- ================================================== --}}
-    {{--  3. الجدول (Table)                             --}}
-    {{-- ================================================== --}}
+
+    {{-- الجدول(Table)--}}
+
     <div class="card shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
@@ -74,7 +81,7 @@
                         <th style="width: 20%;">E-Tender Name</th>
                         <th style="width: 20%;">Client Type</th>
                         <th style="width: 20%;">Assigned To</th>
-                        <th style="width: 15%;">Submission Date</th>
+                        <th style="width: 20%;">Submission Date</th>
                         <th style="width: 10%;">Quarter</th>
                         <th style="width: 10%;">Status</th>
                         <th class="text-end" style="width: 120px;">Actions</th>
@@ -103,7 +110,7 @@
                                    bg-info-subtle text-info-emphasis
                                   @elseif($Tender->status == 'Close')
                                    bg-secondary-subtle text-secondary-emphasis
-                                  @else {{-- هذه الحالة ستكون لـ Declined وأي حالة أخرى --}}
+                                  @else {{-- اذا Declined --}}
                                    bg-danger-subtle text-danger-emphasis 
                                   @endif">
                                    {{ $Tender->status }}
@@ -131,9 +138,8 @@
         @endif
     </div>
 
-    {{-- ================================================== --}}
-    {{--  4. النافذة المنبثقة (Modal)                     --}}
-    {{-- ================================================== --}}
+    {{--النافذة المنبثقة (Modal)--}}
+  
     @if ($showModal)
         <div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);">
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -194,11 +200,7 @@
                                  <div><label class="form-label">Date of Submission after Review <span class="text-danger">*</span></label><input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" @if($mode == 'view') readonly @endif>@error('date_of_submission_after_review')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
 
                                 </div>
-
-                              
-
-
-                                
+     
                             </div>
                             <hr class="my-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -208,11 +210,11 @@
                             </div>
                             @error('focalPoints')<div class="alert alert-danger p-2 mb-3">{{ $message }}</div>@enderror
                             @foreach($focalPoints as $index => $focalPoint)
-<div class="card mb-3">
-    <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="fw-bold">Person {{ $index + 1 }}</span>
-            @if($mode != 'view')
+                             <div class="card mb-3">
+                             <div class="card-body">
+                             <div class="d-flex justify-content-between align-items-center mb-3">
+                             <span class="fw-bold">Person {{ $index + 1 }}</span>
+                            @if($mode != 'view')
 
             <!--btn for remove person-->
                 <button wire:click.prevent="removeFocalPoint({{ $index }})" type="button" class="btn-close" title="Remove Person"></button>
@@ -264,6 +266,7 @@
         </div>
     </div>
 </div>
+
                             @endforeach
                             <hr class="my-4">
                             <h6 class="mb-3 fw-bold">Follow-up & Status</h6>
@@ -298,7 +301,7 @@
                                 </div>
                                 <div class="col-12"><label class="form-label">Notes from Follow-up</label><textarea wire:model="follow_up_notes" class="form-control" rows="3" @if($mode == 'view') readonly @endif></textarea></div>
                                 
-                                {{-- ▼▼▼▼▼▼ هذا هو الجزء الذي تم تعديله ▼▼▼▼▼▼ --}}
+                                
                                 <div class="col-md-6">
                                     <label class="form-label">Status <span class="text-danger">*</span></label>
                                     <select wire:model.live="status" class="form-select @error('status') is-invalid @enderror" @if($mode == 'view') disabled @endif>
@@ -318,8 +321,11 @@
                                         @error('reason_of_decline')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                     </div>
                                 @endif
-                                {{-- ▲▲▲▲▲▲ نهاية الجزء الذي تم تعديله ▲▲▲▲▲▲ --}}
+
                             </div>
+
+
+                            
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" wire:click="$set('showModal', false)">@if($mode == 'view') Close @else Cancel @endif</button>

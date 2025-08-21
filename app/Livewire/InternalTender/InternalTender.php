@@ -42,9 +42,6 @@ class InternalTender extends Component
     public string $date_of_submission_ba = '';
     //
  
-
-
-    //
     public string $date_of_submission_after_review = '';
     public bool $has_third_party = false;
     public string $last_follow_up_date = '';
@@ -99,10 +96,22 @@ class InternalTender extends Component
 
 
 
-    public function addFocalPoint(): void
-    {
-        $this->focalPoints[] = ['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => ''];
+    // public function addFocalPoint(): void
+    // {
+    //     $this->focalPoints[] = ['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => ''];
+    // }
+
+      public function addFocalPoint(): void
+{
+    // في حالة اكثر من 5 
+    if (count($this->focalPoints) >= 5) {
+        session()->flash('focal_point_error', 'You cannot add more than 5 focal points.');
+     
+        return; 
     }
+    //  إذا كان العدد أقل من 5، قم بالإضافة كالمعتاد
+    $this->focalPoints[] = ['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => ''];
+}
 
     public function removeFocalPoint(int $index): void
     {
@@ -189,7 +198,7 @@ class InternalTender extends Component
             if (!empty($validatedData['focalPoints'])) {
                 $tender->focalPoints()->createMany($validatedData['focalPoints']);
             }
-            session()->flash('message', 'Tender added successfully.');
+            session()->flash('message', 'Tender added successfully.'); // رسالة بعد نجاح الاضافة 
         } elseif ($this->mode === 'edit') {
             $this->currentTender->update($tenderData);
             $this->currentTender->focalPoints()->delete();
@@ -219,7 +228,7 @@ class InternalTender extends Component
 
   public function exportPdf()
     {
-        // 1. بناء الاستعلام مع نفس الفلاتر المستخدمة في العرض
+        // 
         $query = Tender::query()
             ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('client_type', 'like', "%{$this->search}%"))
             ->when($this->quarterFilter, fn($q) => $q->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]))
@@ -227,20 +236,52 @@ class InternalTender extends Component
             ->when($this->assignedFilter, fn($q) => $q->where('assigned_to', $this->assignedFilter))
             ->when($this->clientFilter, fn($q) => $q->where('client_type', 'like', "%{$this->clientFilter}%"));
 
-        // 2. جلب كل البيانات التي تطابق الفلاتر (بدون ترقيم صفحات)
+        // كل بيانات بدون ترقيم 
         $tendersToExport = $query->latest('date_of_purchase')->get();
 
-        // 3. إنشاء ملف الـ PDF وتمرير البيانات إليه
+        // يساعدنا انشاء ملف بي اد اف 
         $pdf = Pdf::loadView('livewire.internaltender.tender-pdf', [
             'tenders' => $tendersToExport
         ]);
 
-        // 4. إرسال الـ PDF إلى المتصفح ليتم تحميله
-        //    استخدام streamDownload أفضل لأنه لا ينشئ ملفات مؤقتة على الخادم
+        //  قابل للتحميل 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         }, 'Tenders-Report-' . now()->format('Y-m-d') . '.pdf');
     }
+
+    //excel 
+
+         public function exportSimpleExcel()
+    {
+      
+        $query = \App\Models\InternalTender\InternalTender::query()
+            ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('client_type', 'like', "%{$this->search}%"))
+            ->when($this->quarterFilter, fn($q) => $q->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]))
+            ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter))
+            ->when($this->assignedFilter, fn($q) => $q->where('assigned_to', $this->assignedFilter))
+            ->when($this->clientFilter, fn($q) => $q->where('client_type', 'like', "%{$this->clientFilter}%"));
+
+        // كل بيانات بدون ترقيم 
+        $tendersToExport = $query->latest('date_of_purchase')->get();
+
+        // عرض على blade 
+        $view = view('livewire.othertenderplatform.ExcelOther', [
+            'tenders' => $tendersToExport
+        ])->render();
+
+        // إنشاء اسم الملف
+        $filename = 'Tenders-Report-' . now()->format('Y-m-d') . '.xls';
+
+
+        //قابل للتحميل 
+
+        return response()->streamDownload(function () use ($view) {
+            echo $view;
+        }, $filename);
+    }
+
+    
 
     
 

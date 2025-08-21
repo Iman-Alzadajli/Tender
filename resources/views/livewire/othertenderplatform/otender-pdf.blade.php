@@ -66,6 +66,7 @@
                     <td>{{ $tender->client_type ?? 'N/A' }}</td>
                     <td>{{ $tender->assigned_to ?? 'N/A' }}</td>
                     <td>
+                    
                         {{ $tender->date_of_submission?->format('d M, Y') ?? 'N/A' }}
                     </td>
                     <td>{{ $tender->status ?? 'N/A' }}</td>

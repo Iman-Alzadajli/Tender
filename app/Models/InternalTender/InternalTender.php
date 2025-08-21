@@ -44,7 +44,7 @@ class InternalTender extends Model
     ];
 
     /**
-     * هذا هو الجزء الجديد لحساب الربع السنوي تلقائيًا
+     * هذ لحساب الربع السنوي تلقائيًا
      * عمود افتراضي 
      */
     protected function quarter(): Attribute
