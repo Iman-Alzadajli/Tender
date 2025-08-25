@@ -28,7 +28,7 @@ return new class extends Migration
             $table->text('follow_up_notes')->nullable();
             $table->string('status')->default('pending');
             $table->text('reason_of_decline')->nullable();
-            $table->timestamps(); // يُضيف created_at و updated_at
+            $table->timestamps(); // يضيف created_at و updated_at
         });
     }
 

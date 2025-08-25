@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Tenders Of Other Platforms</title>
+    <title>Tenders Export</title>
 </head>
 <body>
     <table>

@@ -24,9 +24,7 @@ class FocalPoint extends Model
         'other_info',
     ];
 
-    /**
-     * Get the tender that the focal point belongs to.
-     */
+  
     public function internalTender(): BelongsTo
     {
         return $this->belongsTo(InternalTender::class);

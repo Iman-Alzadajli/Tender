@@ -64,14 +64,19 @@
 
 
 
-                <button type="submit" class="btn btn-gradient">
+                <button type="submit" class="btn btn-outline-info ">
                     Log in
                 </button>
             </div>
 
-              <!-- <a style="color: black;"  class="text-gradient text-decoration-none small px-5" href="{{ route('register') }}">
-                    Register
-                </a> -->
+             <!-- Centered Sign-up Link -->
+            <div class="text-center mt-4">
+                <a class="signup-link text-decoration-none" href="{{ route('register') }}">
+                    Sign-up
+                </a>
+            </div>
+
+             
 
         </form>
     </div>

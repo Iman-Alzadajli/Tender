@@ -7,19 +7,27 @@ use Illuminate\Support\Facades\Route;
 use App\Livewire\InternalTender\InternalTender;
 use App\Livewire\ETender\ETender;
 use App\Livewire\OtherTenderPlatform\OtherTenderPlatform;
+use App\Http\Controllers\TenderDashboardController;
 
 
 
 
 
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/', function () { return view('auth.login'); }); 
+
+
+
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
+
+
+
+
+Route::get('/dashboard', [TenderDashboardController::class, 'index'])->name('dashboard');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

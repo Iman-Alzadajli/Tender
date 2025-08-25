@@ -12,31 +12,28 @@
             {{ session('message') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    @endif
+ @endif
 
-  
-    {{--صندوق البحث والفلاتر (Filters)--}}
-  
+    {{--(Filters)--}}
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                 <div class="d-flex gap-2">
                     <button wire:click="prepareModal('add')" class="btn btn-primary">
-                        <i class="bi bi-plus-lg me-2"></i>Add E-Tender
+                        <i class="bi bi-plus-lg me-2"></i>Add Tender
+                    </button>
 
-                        
-                    {{--pdf btn--}}
-                <button wire:click="exportPdf" class="btn btn-outline-secondary">
-                    <i class="bi bi-download me-2"></i>Export PDF
-                    {{-- لإظهار علامة التحميل أثناء التصدير --}}
-                    <div wire:loading wire:target="exportPdf" class="spinner-border spinner-border-sm" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </button>
-                
 
-                 {{--excel --}}
-              
+                    <button wire:click="exportPdf" class="btn btn-outline-secondary">
+                        <i class="bi bi-download me-2"></i>Export PDF
+
+                        <div wire:loading wire:target="exportPdf" class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </button>
+
+                    {{--excel --}}
+
                     <button wire:click="exportSimpleExcel" class="btn btn-success">
                         <span wire:loading wire:target="exportSimpleExcel" class="spinner-border spinner-border-sm" role="status">
                             <span class="visually-hidden">Loading...</span>
@@ -44,28 +41,47 @@
                         <i class="bi bi-file-earmark-excel"></i> Export Excel
                     </button>
 
-                
 
                 </div>
-                <div class="input-group" style="max-width: 350px;">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input wire:model.live.debounce.300ms="search" type="text" class="form-control" placeholder="Search e-tenders...">
+                <div class="d-flex flex-column flex-md-row gap-2 flex-grow-1 justify-content-end">
+                    <div class="input-group searchbar">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input wire:model.live.debounce.300ms="search" type="text" class="form-control" placeholder="Search tenders...">
+                    </div>
+                    <div class="text-end">
+                        <button wire:click="$toggle('showFilter')" class="btn btn-light">
+                            <i class="bi bi-funnel me-2"></i> {{ $showFilter ? 'Hide' : 'Show' }} Filters
+                        </button>
+                    </div>
                 </div>
             </div>
-            
-            <div class="text-end">
-                <button wire:click="$toggle('showFilter')" class="btn btn-light">
-                    <i class="bi bi-funnel me-2"></i> {{ $showFilter ? 'Hide' : 'Show' }} Filters
-                </button>
-            </div>
+
+
 
             @if ($showFilter)
-                <div class="row g-3 mt-2 pt-3 border-top">
-                    <div class="col-sm-6 col-md-3"><select wire:model.live="quarterFilter" class="form-select"><option value="">All Quarters</option><option value="Q1">Q1</option><option value="Q2">Q2</option><option value="Q3">Q3</option><option value="Q4">Q4</option></select></div>
-                    <div class="col-sm-6 col-md-3"><select wire:model.live="statusFilter" class="form-select"><option value="">All Statuses</option><option value="Pending">Pending</option><option value="Open">Open</option><option value="Under Evaluation">Under Evaluation</option><option value="Close">Close</option><option value="Declined">Declined</option></select></div>
-                    <div class="col-sm-6 col-md-3"><select wire:model.live="assignedFilter" class="form-select"><option value="">All Assignees</option>@foreach ($uniqueAssignees as $assignee)<option value="{{ $assignee }}">{{ $assignee }}</option>@endforeach</select></div>
-                    <div class="col-sm-6 col-md-3"><select wire:model.live="clientFilter" class="form-select"><option value="">All Client Types</option>@foreach ($uniqueClients as $client)<option value="{{ $client }}">{{ $client }}</option>@endforeach</select></div>
-                </div>
+            <div class="row g-3 mt-2 pt-3">
+                <div class="col-sm-6 col-md-3"><select wire:model.live="quarterFilter" class="form-select">
+                        <option value="">All Quarters</option>
+                        <option value="Q1">Q1</option>
+                        <option value="Q2">Q2</option>
+                        <option value="Q3">Q3</option>
+                        <option value="Q4">Q4</option>
+                    </select></div>
+                <div class="col-sm-6 col-md-3"><select wire:model.live="statusFilter" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Open">Open</option>
+                        <option value="Under Evaluation">Under Evaluation</option>
+                        <option value="Close">Close</option>
+                        <option value="Declined">Declined</option>
+                    </select></div>
+                <div class="col-sm-6 col-md-3"><select wire:model.live="assignedFilter" class="form-select">
+                        <option value="">All Assignees</option>@foreach ($uniqueAssignees as $assignee)<option value="{{ $assignee }}">{{ $assignee }}</option>@endforeach
+                    </select></div>
+                <div class="col-sm-6 col-md-3"><select wire:model.live="clientFilter" class="form-select">
+                        <option value="">All Client Types</option>@foreach ($uniqueClients as $client)<option value="{{ $client }}">{{ $client }}</option>@endforeach
+                    </select></div>
+            </div>
             @endif
         </div>
     </div>
@@ -78,13 +94,13 @@
             <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 20%;">E-Tender Name</th>
-                        <th style="width: 20%;">Client Type</th>
-                        <th style="width: 20%;">Assigned To</th>
-                        <th style="width: 20%;">Submission Date</th>
-                        <th style="width: 10%;">Quarter</th>
-                        <th style="width: 10%;">Status</th>
-                        <th class="text-end" style="width: 120px;">Actions</th>
+                        <th>E-Tender Name</th>
+                        <th>Client Type</th>
+                        <th>Assigned To</th>
+                        <th>Submission Date</th>
+                        <th>Quarter</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -117,7 +133,7 @@
                                 </span>
 
                             </td>
-                            <td class="text-end">
+                            <td>
                                 <div class="btn-group">
                                     <button wire:click="prepareModal('view', {{ $Tender->id }})" class="btn btn-sm btn-outline-secondary" title="View"><i class="bi bi-eye"></i></button>
                                     <button wire:click="prepareModal('edit', {{ $Tender->id }})" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></button>
