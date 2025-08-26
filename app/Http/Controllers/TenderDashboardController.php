@@ -13,56 +13,58 @@ class TenderDashboardController extends Controller
 {
     public function index()
     {
-        // 1. تحديد الأعمدة المشتركة والمطلوبة بشكل صريح لتجنب أي مشاكل
-        $columns = [
-            'id',
-            'name',
-            'status',
-            'date_of_submission', // تم تغيير اسم العمود ليتوافق مع طلبك
-            'client_type',
-            // نضيف نوع المناقصة كعمود ثابت لتحديد مصدرها وروابطها
-            DB::raw("'e_tender' as tender_type")
-        ];
-
-        // 2. بناء الاستعلامات مع تحديد الأعمدة بشكل صريح
+        // 1. تحديد الأعمدة وجلب البيانات
+        $columns = ['id', 'name', 'status', 'date_of_submission', 'client_type', DB::raw("'e_tender' as tender_type")];
         $eTendersQuery = ETender::select($columns);
-
-        // نغير العمود الثابت لكل جدول
         $columns[5] = DB::raw("'internal_tender' as tender_type");
         $internalTendersQuery = InternalTender::select($columns);
-
         $columns[5] = DB::raw("'other_tender' as tender_type");
         $otherTendersQuery = OtherTender::select($columns);
 
-        // 3. دمج الاستعلامات المحددة الأعمدة
-        $allTendersQuery = $eTendersQuery
+        $allTenders = $eTendersQuery
             ->unionAll($internalTendersQuery)
-            ->unionAll($otherTendersQuery);
+            ->unionAll($otherTendersQuery)
+            ->get();
 
-        // 4. جلب كل البيانات مرة واحدة فقط
-        $allTenders = $allTendersQuery->get();
+        // 2. تنظيف وتوحيد أسماء الحالات (للاستخدام في كل الأقسام)
+        $allTenders->transform(function ($tender) {
+            if ($tender->status) {
+                $cleanedStatus = strtolower(trim($tender->status));
+                $tender->status = str_replace(' ', '_', $cleanedStatus);
+            }
+            return $tender;
+        });
 
-        // --- حساب بيانات البطاقات (Status Cards) ---
+        // --- القسم الأول: حساب بيانات البطاقات (Status Cards) ---
+        // هذا الجزء يستخدم "كل" البيانات المجمعة والنظيفة لحساب الإحصائيات
+        // لا يوجد أي فلترة هنا، وهذا هو المطلوب.
         $statusCounts = $allTenders->countBy('status');
 
-        // --- جلب المناقصات العاجلة (Urgent Tenders) ---
+
+        // --- القسم الثاني: فلترة المناقصات العاجلة (Urgent Tenders) ---
+        // هذا الجزء يستخدم نسخة "مفلترة" من البيانات
         $today = Carbon::today();
         $threeDaysFromNow = Carbon::today()->addDays(3);
+        $activeStatuses = ['open', 'pending', 'under_evaluation']; // الفلتر المطلوب
 
         $urgentTenders = $allTenders
+            ->whereIn('status', $activeStatuses) // الشرط الأول: الحالة نشطة
             ->whereNotNull('date_of_submission')
             ->filter(function ($tender) use ($today, $threeDaysFromNow) {
-                $submissionDate = Carbon::parse($tender->date_of_submission);
-                return $submissionDate->between($today, $threeDaysFromNow);
+                // الشرط الثاني: التاريخ خلال 3 أيام
+                try {
+                    return Carbon::parse($tender->date_of_submission)->between($today, $threeDaysFromNow);
+                } catch (\Exception $e) {
+                    return false;
+                }
             })
             ->sortBy('date_of_submission');
 
-        // --- حساب بيانات الرسم البياني (Charts) ---
-        // أ. الرسم البياني الشريطي: بناءً على date_of_submission
+
+        // --- القسم الثالث: الرسوم البيانية (تستخدم كل البيانات) ---
         $tendersByQuarter = $allTenders
             ->whereNotNull('date_of_submission')
             ->groupBy(function ($tender) {
-                // نستخدم try-catch لتجنب الأخطاء إذا كان التاريخ غير صالح
                 try {
                     return "Q" . Carbon::parse($tender->date_of_submission)->quarter;
                 } catch (\Exception $e) {
@@ -70,10 +72,8 @@ class TenderDashboardController extends Controller
                 }
             });
         
-        // نزيل أي تواريخ غير صالحة
         $tendersByQuarter->forget('Invalid Date');
         $tendersByQuarter = $tendersByQuarter->map->count();
-
 
         $tenderQuantities = [
             'Q1' => $tendersByQuarter->get('Q1', 0),
@@ -82,10 +82,9 @@ class TenderDashboardController extends Controller
             'Q4' => $tendersByQuarter->get('Q4', 0),
         ];
 
-        // ب. الرسم البياني الدائري: أنواع العملاء
         $clientTypes = $allTenders->whereNotNull('client_type')->countBy('client_type');
 
-        // --- تمرير كل البيانات إلى العرض (View) ---
+        // --- تمرير البيانات للعرض ---
         return view('dashboard', [
             'statusCounts' => $statusCounts,
             'urgentTenders' => $urgentTenders,

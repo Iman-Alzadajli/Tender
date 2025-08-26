@@ -9,6 +9,8 @@ use App\Livewire\ETender\ETender;
 use App\Livewire\OtherTenderPlatform\OtherTenderPlatform;
 use App\Http\Controllers\TenderDashboardController;
 
+use App\Livewire\Dashboard\Dashboard;
+
 
 
 
@@ -24,9 +26,10 @@ Route::get('/', function () { return view('auth.login'); });
 // })->middleware(['auth', 'verified'])->name('dashboard');
 
 
+// Route::get('/dashboard', Dashboard::class)->middleware('auth')->name('dashboard');
 
 
-Route::get('/dashboard', [TenderDashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard', [Dashboard::class, 'index'])->name('dashboard');
 
 
 Route::middleware('auth')->group(function () {
