@@ -1,5 +1,5 @@
 <div>
-    {{-- رسالة النجاح التي ستظهر بعد الحفظ أو الحذف --}}
+    {{-- message show when delete or add tender --}}
     @if (session()->has('message'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         {{ session('message') }}
@@ -9,7 +9,7 @@
 
     <div class="container-fluid py-4">
 
-        <!-- Section 1: Status Cards (لم يتم تغيير هذا الجزء) -->
+        <!-- Section 1: Status Cards-->
         <div class="row g-3">
             <div class="col-12 col-md-4 col-lg">
                 <div class="card status-card border-primary border-2">
@@ -68,8 +68,8 @@
             </div>
         </div>
 
-        <!-- Section 2: Urgent Tenders Table (لم يتم تغيير هذا الجزء) -->
-        <div class="row mt-4" >
+        <!-- Section 2: Urgent Tenders Table-->
+        <div class="row mt-4">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
@@ -122,7 +122,7 @@
             </div>
         </div>
 
-        <!-- Section 3: Charts (لم يتم تغيير هذا الجزء) -->
+        <!-- Section 3: Charts -->
         <div class="row mt-4 g-4" wire:ignore>
             <div class="col-lg-7">
                 <div class="card shadow-sm h-100">
@@ -149,14 +149,12 @@
         </div>
     </div>
 
-     
 
-    <!-- =================================================================== -->
-    <!-- |           النافذة المنبثقة الجديدة والكاملة                      | -->
-    <!-- =================================================================== -->
+
+    <!--pop Tender Model (Form) -->
     @if ($showingTenderModal)
     <div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);">
-        <div class= "modal-dialog-scrollable modal-dialog modal-lg">
+        <div class="modal-dialog-scrollable modal-dialog modal-lg">
             <div class="modal-content">
                 <form wire:submit.prevent="saveTender">
                     <div class="modal-header">
@@ -168,17 +166,87 @@
                     <div class="modal-body">
                         <h6 class="mb-3 fw-bold">Basic Information</h6>
                         <div class="row g-3">
-                            <div class="col-md-6"><label class="form-label">Tender Name <span class="text-danger">*</span></label><input type="text" wire:model="name" class="form-control @error('name') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                            <div class="col-md-6"><label class="form-label">Tender Number <span class="text-danger">*</span></label><input type="text" wire:model="number" class="form-control @error('number') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('number')<div class="invalid-feedback">{{ $message}}</div>@enderror</div>
-                            <div class="col-md-6"><label class="form-label">Client Type <span class="text-danger">*</span></label><input type="text" wire:model="client_type" class="form-control @error('client_type') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('client_type')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                            <div class="col-md-6"><label class="form-label">Date of Purchase <span class="text-danger">*</span></label><input type="date" wire:model="date_of_purchase" class="form-control @error('date_of_purchase') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('date_of_purchase')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                            <div class="col-md-6"><label class="form-label">Assigned To <span class="text-danger">*</span></label><input type="text" wire:model="assigned_to" class="form-control @error('assigned_to') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('assigned_to')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                            <div class="col-md-6"><label class="form-label">Date of Submission <span class="text-danger">*</span></label><input type="date" wire:model="date_of_submission" class="form-control @error('date_of_submission') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('date_of_submission')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                            <div class="col-md-6"><label class="form-label">Reviewed by <span class="text-danger">*</span></label><input type="text" wire:model="reviewed_by" class="form-control @error('reviewed_by') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('reviewed_by')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                            <div class="col-md-6"><label class="form-label">Date of Submission of BA <span class="text-danger">*</span></label><input type="date" wire:model="date_of_submission_ba" class="form-control @error('date_of_submission_ba') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('date_of_submission_ba')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                            <div class="col-md-12"><label class="form-label">Date of Submission after Review <span class="text-danger">*</span></label><input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('date_of_submission_after_review')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                            {{-- Tender Name --}}
+                            <div class="col-md-6">
+                                <label class="form-label">Tender Name <span class="text-danger">*</span></label>
+                                <input type="text" wire:model="name" class="form-control @error('name') is-invalid @enderror" @if(!$isEditMode) readonly @endif>
+                                @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            {{-- Tender Number --}}
+                            <div class="col-md-6">
+                                <label class="form-label">Tender Number <span class="text-danger">*</span></label>
+                                <input type="text" wire:model="number" class="form-control @error('number') is-invalid @enderror" @if(!$isEditMode) readonly @endif>
+                                @error('number')<div class="invalid-feedback">{{ $message}}</div>@enderror
+                            </div>
+
+                            {{-- Client Type (Dropdown) --}}
+                            <div class="col-md-6">
+                                <label class="form-label">Client Type <span class="text-danger">*</span></label>
+                                <select wire:model="client_type" class="form-select @error('client_type') is-invalid @enderror" @if(!$isEditMode) disabled @endif>
+                                    <option value="">-- Select Client Type --</option>
+                                    <option value="Government">Government</option>
+                                    <option value="Corporate Collaboration">Corporate Collaboration</option>
+                                    <option value="Company – Small & Medium">Company – Small & Medium</option>
+                                    <option value="Individual">Individual</option>
+                                </select>
+                                @error('client_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            {{-- Date of Purchase --}}
+                            <div class="col-md-6">
+                                <label class="form-label">Date of Purchase <span class="text-danger">*</span></label>
+                                <input type="date" wire:model="date_of_purchase" class="form-control @error('date_of_purchase') is-invalid @enderror" @if(!$isEditMode) readonly @endif>
+                                @error('date_of_purchase')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            {{-- Assigned To (Dropdown) --}}
+                            <div class="col-md-6">
+                                <label class="form-label">Assigned To <span class="text-danger">*</span></label>
+                                <select wire:model="assigned_to" class="form-select @error('assigned_to') is-invalid @enderror" @if(!$isEditMode) disabled @endif>
+                                    <option value="">-- Select Person --</option>
+                                    <option value="Dr. Zainab">Dr. Zainab</option>
+                                    <option value="Mr. Ali">Mr. Ali</option>
+                                </select>
+                                @error('assigned_to')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            {{-- Date of Submission --}}
+                            <div class="col-md-6">
+                                <label class="form-label">Date of Submission <span class="text-danger">*</span></label>
+                                <input type="date" wire:model="date_of_submission" class="form-control @error('date_of_submission') is-invalid @enderror" @if(!$isEditMode) readonly @endif>
+                                @error('date_of_submission')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            {{-- Reviewed by (Dropdown) --}}
+                            <div class="col-md-6">
+                                <label class="form-label">Reviewed by <span class="text-danger">*</span></label>
+                                <select wire:model="reviewed_by" class="form-select @error('reviewed_by') is-invalid @enderror" @if(!$isEditMode) disabled @endif>
+                                    <option value="">-- Select Person --</option>
+                                    <option value="Dr. Zainab">Dr. Zainab</option>
+                                    <option value="Mr. Ali">Mr. Ali</option>
+                                </select>
+                                @error('reviewed_by')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            {{-- Date of Submission of BA --}}
+                            <div class="col-md-6">
+                                <label class="form-label">Date of Submission of BA <span class="text-danger">*</span></label>
+                                <input type="date" wire:model="date_of_submission_ba" class="form-control @error('date_of_submission_ba') is-invalid @enderror" @if(!$isEditMode) readonly @endif>
+                                @error('date_of_submission_ba')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            {{-- Date of Submission after Review --}}
+                            <div class="col-md-12">
+                                <label class="form-label">Date of Submission after Review <span class="text-danger">*</span></label>
+                                <input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" @if(!$isEditMode) readonly @endif>
+                                @error('date_of_submission_after_review')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
                         </div>
+
                         <hr class="my-4">
+
+                        {{-- Focal Points Section --}}
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h6 class="mb-0 fw-bold">Focal Points</h6>
                             @if($isEditMode)<button wire:click.prevent="addFocalPoint" type="button" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus"></i> Add Person</button>@endif
@@ -191,34 +259,59 @@
                                     @if($isEditMode)<button wire:click.prevent="removeFocalPoint({{ $index }})" type="button" class="btn-close" title="Remove Person"></button>@endif
                                 </div>
                                 <div class="row g-3">
-                                    <div class="col-md-6 col-lg-3"><label class="form-label">Name</label><input type="text" wire:model="focalPoints.{{ $index }}.name" class="form-control @error('focalPoints.'.$index.'.name') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                                    <div class="col-md-6 col-lg-3"><label class="form-label">Phone</label><input type="text" wire:model="focalPoints.{{ $index }}.phone" class="form-control @error('focalPoints.'.$index.'.phone') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.phone')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                                    <div class="col-md-6 col-lg-3"><label class="form-label">Email</label><input type="email" wire:model="focalPoints.{{ $index }}.email" class="form-control @error('focalPoints.'.$index.'.email') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.email')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                                    <div class="col-md-6 col-lg-3"><label class="form-label">Department</label><input type="text" wire:model="focalPoints.{{ $index }}.department" class="form-control @error('focalPoints.'.$index.'.department') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.department')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                    <div class="col-md-6 col-lg-3"><label class="form-label">Name <span class="text-danger">*</span></label><input type="text" wire:model="focalPoints.{{ $index }}.name" class="form-control @error('focalPoints.'.$index.'.name') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                    <div class="col-md-6 col-lg-3"><label class="form-label">Phone <span class="text-danger">*</span></label><input type="text" wire:model="focalPoints.{{ $index }}.phone" class="form-control @error('focalPoints.'.$index.'.phone') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.phone')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                    <div class="col-md-6 col-lg-3"><label class="form-label">Email <span class="text-danger">*</span></label><input type="email" wire:model="focalPoints.{{ $index }}.email" class="form-control @error('focalPoints.'.$index.'.email') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.email')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                    <div class="col-md-6 col-lg-3"><label class="form-label">Department <span class="text-danger">*</span></label><input type="text" wire:model="focalPoints.{{ $index }}.department" class="form-control @error('focalPoints.'.$index.'.department') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.department')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
                                 </div>
                             </div>
                         </div>
                         @endforeach
+
                         <hr class="my-4">
+
+                        {{-- Follow-up & Status Section --}}
                         <h6 class="mb-3 fw-bold">Follow-up & Status</h6>
                         <div class="row g-3">
-                            <div class="col-md-4"><label class="form-label">Is there a third-party?</label>
+                            <div class="col-md-4">
+                                <label class="form-label">Is there a third-party? <span class="text-danger">*</span></label>
                                 <div class="d-flex align-items-center pt-1">
                                     <div class="form-check me-4"><input class="form-check-input" type="radio" wire:model="has_third_party" value="1" id="thirdPartyYes" @if(!$isEditMode) disabled @endif><label class="form-check-label" for="thirdPartyYes">Yes</label></div>
                                     <div class="form-check"><input class="form-check-input" type="radio" wire:model="has_third_party" value="0" id="thirdPartyNo" @if(!$isEditMode) disabled @endif><label class="form-check-label" for="thirdPartyNo">No</label></div>
                                 </div>
                             </div>
-                            <div class="col-md-4"><label class="form-label">Last date of Follow-up</label><input type="date" wire:model="last_follow_up_date" class="form-control @error('last_follow_up_date') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('last_follow_up_date')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                            <div class="col-md-4"><label class="form-label">Channel of Follow-up</label><input type="text" wire:model="follow_up_channel" class="form-control @error('follow_up_channel') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('follow_up_channel')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                            <div class="col-12"><label class="form-label">Notes from Follow-up</label><textarea wire:model="follow_up_notes" class="form-control" rows="3" @if(!$isEditMode) readonly @endif></textarea></div>
-                            <div class="col-md-6"><label class="form-label">Status</label><select wire:model.live="status" class="form-select @error('status') is-invalid @enderror" @if(!$isEditMode) disabled @endif>
+                            <div class="col-md-4">
+                                <label class="form-label">Last date of Follow-up <span class="text-danger">*</span></label>
+                                <input type="date" wire:model="last_follow_up_date" class="form-control @error('last_follow_up_date') is-invalid @enderror" @if(!$isEditMode) readonly @endif>
+                                @error('last_follow_up_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Channel of Follow-up <span class="text-danger">*</span></label>
+                                <input type="text" wire:model="follow_up_channel" class="form-control @error('follow_up_channel') is-invalid @enderror" @if(!$isEditMode) readonly @endif>
+                                @error('follow_up_channel')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Notes from Follow-up</label>
+                                <textarea wire:model="follow_up_notes" class="form-control" rows="3" @if(!$isEditMode) readonly @endif></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Status <span class="text-danger">*</span></label>
+                                <select wire:model.live="status" class="form-select @error('status') is-invalid @enderror" @if(!$isEditMode) disabled @endif>
                                     <option value="Pending">Pending</option>
                                     <option value="Open">Open</option>
                                     <option value="Under Evaluation">Under Evaluation</option>
                                     <option value="Closed">Closed</option>
                                     <option value="Declined">Declined</option>
-                                </select>@error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                            @if($status === 'Declined')<div class="col-md-6"><label class="form-label">Reason of Decline</label><textarea wire:model="reason_of_decline" class="form-control @error('reason_of_decline') is-invalid @enderror" rows="1" @if(!$isEditMode) readonly @endif></textarea>@error('reason_of_decline')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>@endif
+                                </select>
+                                @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            @if($status === 'Declined')
+                            <div class="col-md-6">
+                                <label class="form-label">Reason of Decline <span class="text-danger">*</span></label>
+                                <textarea wire:model="reason_of_decline" class="form-control @error('reason_of_decline') is-invalid @enderror" rows="1" @if(!$isEditMode) readonly @endif></textarea>
+                                @error('reason_of_decline')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            @endif
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -232,5 +325,3 @@
         </div>
     </div>
     @endif
-
-</div>

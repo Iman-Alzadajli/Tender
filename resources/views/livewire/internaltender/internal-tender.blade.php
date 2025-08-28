@@ -6,7 +6,7 @@
         </h2>
     </x-slot>
 
-    {{-- رسالة تأكيد --}}
+    {{-- message show when delete or add tender --}}
     @if (session()->has('message'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         {{ session('message') }}
@@ -157,7 +157,7 @@
     </div>
 
 
-    {{-- 4. النافذة المنبثقة او بوب --}}
+    {{-- 4 النافذة المنبثقة او بوب --}}
 
     @if ($showModal)
     <div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);">

@@ -7,13 +7,13 @@
     <link rel="stylesheet" href="{{ asset('/css/dashboard.css' ) }}">
     @endpush
 
-    {{-- هذا السطر سيقوم باستدعاء وعرض مكون Livewire --}}
-    @livewire('dashboard.dashboard')
+    {{-- ذا السطر بيقوم باستدعاء وعرض مكون Livewire --}}
+    @livewire('dashboard.dashboard') {{--موقعه--}}
 
     @push('scripts')
-    {{-- We push the required JS libraries to the main layout --}}
+    {{-- JS libraries --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    {{-- تأكد من أن هذا المسار صحيح --}}
+    {{-- js for dashboard --}}
     <script src="{{ asset('/js/dashboard.js' ) }}"></script>
     @endpush
 

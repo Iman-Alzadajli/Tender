@@ -12,12 +12,7 @@ use Illuminate\Validation\Rule;
 
 class Dashboard extends Component
 {
-    // --- خصائص عرض البيانات الرئيسية ---
-    // هذه الخصائص لم تعد ضرورية لأننا سنمرر البيانات مباشرة في render
-    // public $statusCounts = [];
-    // public $urgentTenders = [];
-    // public $tenderQuantitiesJson = '[]';
-    // public $clientTypesJson = '[]';
+
 
     // --- خصائص النافذة المنبثقة (Modal) والفورم ---
     public $showingTenderModal = false;
@@ -25,7 +20,7 @@ class Dashboard extends Component
     public ?int $tenderId = null;
     public ?string $tenderModelClass = null;
 
-    // --- خصائص الفورم الكاملة (تبقى كما هي) ---
+    // --- خصائص الفورم الكاملة ---
     public string $name = '';
     public string $number = '';
     public string $client_type = '';
@@ -43,12 +38,12 @@ class Dashboard extends Component
     public string $reason_of_decline = '';
     public array $focalPoints = [];
 
-    // --- قواعد التحقق (تبقى كما هي) ---
+    // --- قواعد التحقق ---
     protected function rules(): array
     {
         return [
             'name' => 'required|string|max:255',
-            'number' => 'required|string|max:255',
+            'number'  => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
             'client_type' => 'required|string|max:255',
             'date_of_purchase' => 'required|date',
             'assigned_to' => 'required|string|max:255',
@@ -64,7 +59,7 @@ class Dashboard extends Component
             'reason_of_decline' => Rule::requiredIf($this->status === 'Declined'),
             'focalPoints' => 'sometimes|array',
             'focalPoints.*.name' => 'required|string|max:255',
-            'focalPoints.*.phone' => 'required|string|max:255',
+            'focalPoints.*.phone' => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
             'focalPoints.*.email' => 'required|email|max:255',
             'focalPoints.*.department' => 'required|string|max:255',
         ];
@@ -84,13 +79,13 @@ class Dashboard extends Component
     public function showTender($type, $id, $editMode = false)
     {
         $this->resetValidation();
-        // ✅✅✅ التصحيح الرئيسي هنا: إضافة علامة الدولار '$'
+
         $this->tenderId = $id;
         $this->tenderModelClass = $this->getModelClassForType($type);
-        
+
         if ($this->tenderModelClass) {
             $tender = $this->tenderModelClass::with('focalPoints')->findOrFail($id);
-            
+
             $this->fill([
                 'name' => $tender->name,
                 'number' => $tender->number,
@@ -109,7 +104,11 @@ class Dashboard extends Component
                 'reason_of_decline' => $tender->reason_of_decline,
                 'focalPoints' => $tender->focalPoints->toArray(),
             ]);
+
+            
         }
+
+        
 
         $this->isEditMode = $editMode;
         $this->showingTenderModal = true;
@@ -118,7 +117,7 @@ class Dashboard extends Component
     public function saveTender()
     {
         $validatedData = $this->validate();
-        
+
         if ($this->tenderModelClass && $this->tenderId) {
             $tender = $this->tenderModelClass::find($this->tenderId);
             $tenderData = collect($validatedData)->except('focalPoints')->toArray();
@@ -128,7 +127,7 @@ class Dashboard extends Component
             if (!empty($validatedData['focalPoints'])) {
                 $tender->focalPoints()->createMany($validatedData['focalPoints']);
             }
-            
+
             $this->showingTenderModal = false;
             session()->flash('message', 'Tender updated successfully.');
         }
@@ -143,13 +142,28 @@ class Dashboard extends Component
         }
     }
 
-    // --- دوال مساعدة للـ Focal Points (تبقى كما هي) ---
-    public function addFocalPoint(): void { /* ... */ }
-    public function removeFocalPoint(int $index): void { /* ... */ }
 
-    // ==========================================================
-    // |                الحل النهائي والدائم هنا                 |
-    // ==========================================================
+    public function addFocalPoint(): void
+    {
+        $this->focalPoints[] = [
+            'name' => '',
+            'phone' => '',
+            'email' => '',
+            'department' => ''
+        ];
+    }
+
+
+    public function removeFocalPoint(int $index): void
+    {     // تاكد هل العنصر بالفعل موجود
+    if (isset($this->focalPoints[$index])) {
+        unset($this->focalPoints[$index]);
+        // يتم اعادة فهرس بشكل مرتب 
+        $this->focalPoints = array_values($this->focalPoints);
+    }
+    }
+
+
     public function render()
     {
         // --- جلب البيانات في كل مرة ---
@@ -160,7 +174,7 @@ class Dashboard extends Component
         $columns[7] = DB::raw("'other_tender' as tender_type");
         $otherTendersQuery = OtherTender::select($columns);
         $allTenders = $eTendersQuery->unionAll($internalTendersQuery)->unionAll($otherTendersQuery)->get();
-        
+
         $allTenders->transform(function ($tender) {
             if ($tender->status) {
                 $status = strtolower(trim($tender->status));
@@ -172,13 +186,13 @@ class Dashboard extends Component
 
         $activeStatuses = ['open', 'pending', 'under_evaluation'];
         $urgentTenders = $allTenders->whereIn('status', $activeStatuses)
-                                    ->whereNotNull('date_of_submission')
-                                    ->filter(fn($t) => Carbon::parse($t->date_of_submission)->between(Carbon::today(), Carbon::today()->addDays(3)))
-                                    ->sortBy('date_of_submission');
-        
+            ->whereNotNull('date_of_submission')
+            ->filter(fn($t) => Carbon::parse($t->date_of_submission)->between(Carbon::today(), Carbon::today()->addDays(3)))
+            ->sortBy('date_of_submission');
+
         $tendersByQuarter = $allTenders->whereNotNull('date_of_submission')
-                                       ->groupBy(fn($t) => "Q" . Carbon::parse($t->date_of_submission)->quarter)
-                                       ->map->count();
+            ->groupBy(fn($t) => "Q" . Carbon::parse($t->date_of_submission)->quarter)
+            ->map->count();
         $tenderQuantities = ['Q1' => $tendersByQuarter->get('Q1', 0), 'Q2' => $tendersByQuarter->get('Q2', 0), 'Q3' => $tendersByQuarter->get('Q3', 0), 'Q4' => $tendersByQuarter->get('Q4', 0)];
 
         // --- تمرير البيانات مباشرة إلى الواجهة ---

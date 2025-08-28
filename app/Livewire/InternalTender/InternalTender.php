@@ -57,7 +57,7 @@ class InternalTender extends Component
     {
         return [
             'name' => 'required|string|max:255',
-            'number' => ['required', 'string', 'regex:/^[79]\d{7}$/', 'max:255'],
+            'number' => ['required', 'numeric', 'regex:/^[79]\d{7}$/', 'max:255'],
             'client_type' => 'required|string|max:255',
             'date_of_purchase' => 'required|date',
             'assigned_to' => 'required|string|max:255',
@@ -77,7 +77,7 @@ class InternalTender extends Component
             'focalPoints.*.email' => 'required|email|max:255',
             'focalPoints.*.department' => 'required|string|max:255',
             'focalPoints.*.other_info' => 'nullable|string',
-            'focalPoints.*.phone' => ['required', 'string', 'regex:/^(\+968)?[79]\d{7}$/'],
+            'focalPoints.*.phone' => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
             'focalPoints.*.email' => ['required', 'string', 'email', 'max:255'],
             'focalPoints.*.department' => 'required|string|max:255',
             'focalPoints.*.other_info' => 'nullable|string',
