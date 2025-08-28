@@ -10,13 +10,14 @@ A dynamic and real-time Tender Management System built with Laravel and Livewire
 
 ## ✨ Key Features
 
--   **Modular Design:** Separate, fully functional modules for "E-Tenders" and "Other Tenders".
--   **Livewire-Powered Interface:** A fast, single-page experience for all user interactions.
--   **Full CRUD Functionality:** Create, Read, Update, and Delete tenders through an intuitive modal interface without page reloads.
--   **Dynamic Nested Forms:** Easily add and remove multiple "Focal Points" (contact persons) for each tender, with a validation limit of 5.
--   **Real-Time Filtering & Search:** Instantly search and filter tenders by Quarter, Status, Assignee, or Client.
--   **Data Export:** Download the filtered data as a **PDF** or **Excel** file with a single click.
--   **Read-Only View Mode:** Securely view tender details in a disabled form to prevent accidental edits.
+**Interactive Dashboard: A central hub providing at-a-glance stats, an urgent tenders panel, and dynamic charts for quick data analysis.**
+**Modular Tender Management: Separate modules for E-Tenders, Internal Tenders, and others, all managed in a unified interface.**
+**Livewire-Powered Interface: A fast, single-page experience for all user interactions, eliminating page reloads.**
+**Full CRUD Functionality: Create, Read, Update, and Delete tenders through a single, intuitive modal.**
+**Dynamic Nested Forms: Easily add and remove multiple "Focal Points" (contacts) for each tender.**
+**Real-Time Filtering & Search: Instantly search and filter tenders by status, client, quarter, and more.**
+**One-Click Data Export: Download filtered data as a PDF or Excel file.**
+**Secure Read-Only Mode: Safely view tender details in a disabled form to prevent accidental edits.**
 
 ---
 
