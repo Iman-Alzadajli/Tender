@@ -13,38 +13,41 @@
 }
 
 
-        /* Specific Hover Colors */
+/* Specific Hover Colors */
 
-         .card.status-card:hover .small,
-         .card.status-card:hover .fs-4,
-        .card.status-card:hover .bi {
-            color: white !important;
+.card.status-card:hover .small,
+.card.status-card:hover .fs-4,
+.card.status-card:hover .bi {
+    color: white !important;
+}
+
+
+.card.status-card.border-primary:hover {
+    background-color: #0d6efd
+}
+
+.card.status-card.border-warning:hover {
+    background-color: #ffc107
+}
+
+.card.status-card.border-info:hover {
+    background-color: #0dcaf0;
+}
+
+.card.status-card.border-secondary:hover {
+    background-color: #6c757d;
+}
+
+.card.status-card.border-danger:hover {
+    background-color: #dc3545;
+}
+
+th, td {
+    text-align: center;
+  
+}
+
+
+  .modal-dialog-scrollable .modal-content {
+           overflow-y: scroll;
         }
-
-
-        .card.status-card.border-primary:hover {
-            background-color: #0d6efd
-        }
-
-        .card.status-card.border-warning:hover {
-            background-color: #ffc107
-        }
-
-        .card.status-card.border-info:hover {
-            background-color: #0dcaf0;
-        }
-
-        .card.status-card.border-secondary:hover {
-            background-color: #6c757d;
-        }
-
-        .card.status-card.border-danger:hover {
-            background-color: #dc3545;
-        }
-
-
-
-
-
-
-

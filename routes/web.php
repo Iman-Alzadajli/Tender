@@ -29,7 +29,14 @@ Route::get('/', function () { return view('auth.login'); });
 // Route::get('/dashboard', Dashboard::class)->middleware('auth')->name('dashboard');
 
 
-Route::get('/dashboard', [Dashboard::class, 'index'])->name('dashboard');
+// Route::get('/dashboard', Dashboard::class)->name('dashboard');
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware('auth')->name('dashboard');
+
+
+// Route::get('/dashboard', [Dashboard::class, 'index'])->name('dashboard');
 
 
 Route::middleware('auth')->group(function () {

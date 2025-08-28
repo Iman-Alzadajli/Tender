@@ -1,16 +1,15 @@
-<x-app-layout>
-
-    @push('styles')
-    {{-- We are pushing the required CSS links to the main layout --}}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="{{ asset('/css/dashboard.css' ) }}">
-    @endpush
+<div>
+    {{-- رسالة النجاح التي ستظهر بعد الحفظ أو الحذف --}}
+    @if (session()->has('message'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ session('message') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
 
     <div class="container-fluid py-4">
 
-        <!-- Section 1: Status Cards (Dynamic) -->
-        <!-- Section 1: Status Cards (يعرض الإجمالي لكل الحالات) -->
+        <!-- Section 1: Status Cards (لم يتم تغيير هذا الجزء) -->
         <div class="row g-3">
             <div class="col-12 col-md-4 col-lg">
                 <div class="card status-card border-primary border-2">
@@ -50,7 +49,7 @@
                     <div class="card-body d-flex justify-content-between align-items-center">
                         <div>
                             <div class="text-secondary fw-bold text-uppercase small">Closed</div>
-                            <div class="fs-4 fw-bold text-dark">{{ $statusCounts['close'] ?? 0 }}</div>
+                            <div class="fs-4 fw-bold text-dark">{{ $statusCounts['closed'] ?? 0 }}</div>
                         </div>
                         <i class="bi bi-archive-fill text-secondary fs-1 opacity-75"></i>
                     </div>
@@ -69,8 +68,8 @@
             </div>
         </div>
 
-        <!-- Section 2: Urgent Tenders Table (يعرض الحالات النشطة فقط) -->
-        <div class="row mt-4">
+        <!-- Section 2: Urgent Tenders Table (لم يتم تغيير هذا الجزء) -->
+        <div class="row mt-4" >
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
@@ -80,35 +79,34 @@
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th class="text-start">Tender Name</th>
-                                    <th class="text-start">Submission Date</th>
-                                    <th class="text-center">Days Left</th>
-                                    <th class="text-center">Actions</th>
+                                    <th>Tender Name</th>
+                                    <th>Submission Date</th>
+                                    <th>Days Left</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse ($urgentTenders as $tender)
-                                <tr>
+                                <tr wire:key="{{ $tender->tender_type }}-{{ $tender->id }}">
                                     <td>{{ $tender->name ?? 'N/A' }}</td>
                                     <td>{{ \Carbon\Carbon::parse($tender->date_of_submission)->format('d M, Y') }}</td>
-                                    <td class="text-center">
+                                    <td>
                                         @php
-                                            $daysLeft = \Carbon\Carbon::now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($tender->date_of_submission)->startOfDay(), false);
+                                        $daysLeft = \Carbon\Carbon::now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($tender->date_of_submission)->startOfDay(), false);
                                         @endphp
                                         @if ($daysLeft <= 0)
                                             <span class="badge bg-danger fw-bold rounded-pill">Due Today!</span>
-                                        @elseif ($daysLeft == 1)
+                                            @elseif ($daysLeft == 1)
                                             <span class="badge bg-danger-subtle text-danger-emphasis rounded-pill">1 Day</span>
-                                        @else
+                                            @else
                                             <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill">{{ $daysLeft }} Days</span>
-                                        @endif
+                                            @endif
                                     </td>
-                                    <td class="text-center">
+                                    <td>
                                         <div class="btn-group btn-group-sm" role="group">
-                                            {{-- تحتاج إلى إضافة المسارات الصحيحة هنا --}}
-                                            <a href="#" class="btn btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a>
-                                            <a href="#" class="btn btn-outline-primary" title="Edit"><i class="bi bi-pencil-square"></i></a>
-                                            <a href="#" class="btn btn-outline-danger" title="Delete"><i class="bi bi-trash2-fill"></i></a>
+                                            <button wire:click="showTender('{{ $tender->tender_type }}', {{ $tender->id }}, false)" type="button" class="btn btn-outline-secondary" title="View"><i class="bi bi-eye"></i></button>
+                                            <button wire:click="showTender('{{ $tender->tender_type }}', {{ $tender->id }}, true)" type="button" class="btn btn-outline-primary" title="Edit"><i class="bi bi-pencil-square"></i></button>
+                                            <button wire:click="deleteTender('{{ $tender->tender_type }}', {{ $tender->id }})" wire:confirm="Are you sure you want to delete this tender?" type="button" class="btn btn-outline-danger" title="Delete"><i class="bi bi-trash2-fill"></i></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -123,8 +121,9 @@
                 </div>
             </div>
         </div>
-        <!-- Section 3: Charts (Dynamic Data passed via data-attributes) -->
-        <div class="row mt-4 g-4">
+
+        <!-- Section 3: Charts (لم يتم تغيير هذا الجزء) -->
+        <div class="row mt-4 g-4" wire:ignore>
             <div class="col-lg-7">
                 <div class="card shadow-sm h-100">
                     <div class="card-header bg-light">
@@ -150,11 +149,88 @@
         </div>
     </div>
 
-    @push('scripts')
-    {{-- We push the required JS libraries to the main layout --}}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    {{-- تأكد من أن هذا المسار صحيح --}}
-    <script src="{{ asset('/js/dashboard.js' ) }}"></script>
-    @endpush
+     
 
-</x-app-layout>
+    <!-- =================================================================== -->
+    <!-- |           النافذة المنبثقة الجديدة والكاملة                      | -->
+    <!-- =================================================================== -->
+    @if ($showingTenderModal)
+    <div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);">
+        <div class= "modal-dialog-scrollable modal-dialog modal-lg">
+            <div class="modal-content">
+                <form wire:submit.prevent="saveTender">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            {{ $isEditMode ? 'Edit Tender' : 'View Tender' }}
+                        </h5>
+                        <button type="button" class="btn-close" wire:click="$set('showingTenderModal', false)"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6 class="mb-3 fw-bold">Basic Information</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6"><label class="form-label">Tender Name <span class="text-danger">*</span></label><input type="text" wire:model="name" class="form-control @error('name') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                            <div class="col-md-6"><label class="form-label">Tender Number <span class="text-danger">*</span></label><input type="text" wire:model="number" class="form-control @error('number') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('number')<div class="invalid-feedback">{{ $message}}</div>@enderror</div>
+                            <div class="col-md-6"><label class="form-label">Client Type <span class="text-danger">*</span></label><input type="text" wire:model="client_type" class="form-control @error('client_type') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('client_type')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                            <div class="col-md-6"><label class="form-label">Date of Purchase <span class="text-danger">*</span></label><input type="date" wire:model="date_of_purchase" class="form-control @error('date_of_purchase') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('date_of_purchase')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                            <div class="col-md-6"><label class="form-label">Assigned To <span class="text-danger">*</span></label><input type="text" wire:model="assigned_to" class="form-control @error('assigned_to') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('assigned_to')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                            <div class="col-md-6"><label class="form-label">Date of Submission <span class="text-danger">*</span></label><input type="date" wire:model="date_of_submission" class="form-control @error('date_of_submission') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('date_of_submission')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                            <div class="col-md-6"><label class="form-label">Reviewed by <span class="text-danger">*</span></label><input type="text" wire:model="reviewed_by" class="form-control @error('reviewed_by') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('reviewed_by')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                            <div class="col-md-6"><label class="form-label">Date of Submission of BA <span class="text-danger">*</span></label><input type="date" wire:model="date_of_submission_ba" class="form-control @error('date_of_submission_ba') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('date_of_submission_ba')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                            <div class="col-md-12"><label class="form-label">Date of Submission after Review <span class="text-danger">*</span></label><input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('date_of_submission_after_review')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                        </div>
+                        <hr class="my-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 fw-bold">Focal Points</h6>
+                            @if($isEditMode)<button wire:click.prevent="addFocalPoint" type="button" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus"></i> Add Person</button>@endif
+                        </div>
+                        @foreach($focalPoints as $index => $focalPoint)
+                        <div class="card mb-3" wire:key="focal-point-{{ $index }}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="fw-bold">Person {{ $index + 1 }}</span>
+                                    @if($isEditMode)<button wire:click.prevent="removeFocalPoint({{ $index }})" type="button" class="btn-close" title="Remove Person"></button>@endif
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6 col-lg-3"><label class="form-label">Name</label><input type="text" wire:model="focalPoints.{{ $index }}.name" class="form-control @error('focalPoints.'.$index.'.name') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                    <div class="col-md-6 col-lg-3"><label class="form-label">Phone</label><input type="text" wire:model="focalPoints.{{ $index }}.phone" class="form-control @error('focalPoints.'.$index.'.phone') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.phone')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                    <div class="col-md-6 col-lg-3"><label class="form-label">Email</label><input type="email" wire:model="focalPoints.{{ $index }}.email" class="form-control @error('focalPoints.'.$index.'.email') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.email')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                    <div class="col-md-6 col-lg-3"><label class="form-label">Department</label><input type="text" wire:model="focalPoints.{{ $index }}.department" class="form-control @error('focalPoints.'.$index.'.department') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.department')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                        <hr class="my-4">
+                        <h6 class="mb-3 fw-bold">Follow-up & Status</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4"><label class="form-label">Is there a third-party?</label>
+                                <div class="d-flex align-items-center pt-1">
+                                    <div class="form-check me-4"><input class="form-check-input" type="radio" wire:model="has_third_party" value="1" id="thirdPartyYes" @if(!$isEditMode) disabled @endif><label class="form-check-label" for="thirdPartyYes">Yes</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="radio" wire:model="has_third_party" value="0" id="thirdPartyNo" @if(!$isEditMode) disabled @endif><label class="form-check-label" for="thirdPartyNo">No</label></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4"><label class="form-label">Last date of Follow-up</label><input type="date" wire:model="last_follow_up_date" class="form-control @error('last_follow_up_date') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('last_follow_up_date')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                            <div class="col-md-4"><label class="form-label">Channel of Follow-up</label><input type="text" wire:model="follow_up_channel" class="form-control @error('follow_up_channel') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('follow_up_channel')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                            <div class="col-12"><label class="form-label">Notes from Follow-up</label><textarea wire:model="follow_up_notes" class="form-control" rows="3" @if(!$isEditMode) readonly @endif></textarea></div>
+                            <div class="col-md-6"><label class="form-label">Status</label><select wire:model.live="status" class="form-select @error('status') is-invalid @enderror" @if(!$isEditMode) disabled @endif>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Open">Open</option>
+                                    <option value="Under Evaluation">Under Evaluation</option>
+                                    <option value="Closed">Closed</option>
+                                    <option value="Declined">Declined</option>
+                                </select>@error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                            @if($status === 'Declined')<div class="col-md-6"><label class="form-label">Reason of Decline</label><textarea wire:model="reason_of_decline" class="form-control @error('reason_of_decline') is-invalid @enderror" rows="1" @if(!$isEditMode) readonly @endif></textarea>@error('reason_of_decline')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>@endif
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" wire:click="$set('showingTenderModal', false)">Close</button>
+                        @if($isEditMode)
+                        <button type="submit" class="btn btn-primary">Update Tender</button>
+                        @endif
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
+</div>
