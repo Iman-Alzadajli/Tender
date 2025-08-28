@@ -1,5 +1,6 @@
+<p align="center"> <img src="https://k.top4top.io/p_3527cmsbj1.png" alt="s2"></a></p>
 
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://c.top4top.io/p_3520svq3v1.png"  alt="Laravel Logo"></a></p>
+<p align="center"><img src="https://c.top4top.io/p_3520svq3v1.png"  alt="Laravel Logo"></a></p>
 
 # Tender Management System
 
