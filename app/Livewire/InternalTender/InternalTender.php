@@ -57,7 +57,7 @@ class InternalTender extends Component
     {
         return [
             'name' => 'required|string|max:255',
-            'number' => ['required', 'numeric', 'regex:/^[79]\d{7}$/', 'max:255'],
+            'number' => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
             'client_type' => 'required|string|max:255',
             'date_of_purchase' => 'required|date',
             'assigned_to' => 'required|string|max:255',
@@ -73,14 +73,14 @@ class InternalTender extends Component
             'reason_of_decline' => Rule::requiredIf($this->status === 'Declined'),
             'focalPoints' => 'required|array|min:1',
             'focalPoints.*.name' => 'required|string|max:255',
-            'focalPoints.*.phone' => 'required|string|max:255',
+            'focalPoints.*.phone' => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
             'focalPoints.*.email' => 'required|email|max:255',
             'focalPoints.*.department' => 'required|string|max:255',
             'focalPoints.*.other_info' => 'nullable|string',
-            'focalPoints.*.phone' => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
-            'focalPoints.*.email' => ['required', 'string', 'email', 'max:255'],
-            'focalPoints.*.department' => 'required|string|max:255',
-            'focalPoints.*.other_info' => 'nullable|string',
+            // 'focalPoints.*.phone' => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
+            // 'focalPoints.*.email' => ['required', 'string', 'email', 'max:255'],
+            // 'focalPoints.*.department' => 'required|string|max:255',
+            // 'focalPoints.*.other_info' => 'nullable|string',
         ];
     }
 
