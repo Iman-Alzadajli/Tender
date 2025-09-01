@@ -6,11 +6,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Auth\Passwords\CanResetPassword; // هذا السطر كان ناقصاً
+use App\Notifications\MyResetPasswordNotification; // استيراد رسالة الإشعار المخصصة
+
+
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, CanResetPassword; // إضافة CanResetPassword
 
     /**
      * The attributes that are mass assignable.
@@ -45,4 +49,17 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+     /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token) // هذه الدالة كانت ناقصة
+    {
+        $this->notify(new MyResetPasswordNotification($token));
+    }
+
+    
 }
