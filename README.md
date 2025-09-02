@@ -45,6 +45,7 @@ This project was developed under the guidance of the following supervisors:
 | :---- | :-------------------- |
 | Dua   | Frontend & UI/UX      |
 | Anwar | Backend & Architecture|
+| Aisha | Backend & Architecture|
 
 ---
 
