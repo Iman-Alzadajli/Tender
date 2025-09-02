@@ -33,8 +33,8 @@
             </div>
 
             <div class="d-flex justify-content-end">
-                <button type="submit" class="btn btn-gradient">
-                    {{ __('Email Password Reset Link') }}
+                <button type="submit" class="btn btn-outline-info">
+                    {{ __('Send Email') }}
                 </button>
             </div>
         </form>

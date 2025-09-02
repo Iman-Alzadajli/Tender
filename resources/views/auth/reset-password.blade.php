@@ -65,7 +65,7 @@
             </div>
 
             <div class="d-flex justify-content-end">
-                <button type="submit" class="btn btn-gradient">
+                <button type="submit" class="btn btn-outline-info">
                     {{ __('Reset Password') }}
                 </button>
             </div>

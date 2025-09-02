@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard;
 
 use Livewire\Component;
+use Livewire\WithPagination; // لترقيم 
 use App\Models\ETender\ETender;
 use App\Models\InternalTender\InternalTender;
 use App\Models\OtherTenderPlatform\OtherTender;
@@ -12,6 +13,10 @@ use Illuminate\Validation\Rule;
 
 class Dashboard extends Component
 {
+
+
+
+
 
 
     // --- خصائص النافذة المنبثقة (Modal) والفورم ---
@@ -104,11 +109,9 @@ class Dashboard extends Component
                 'reason_of_decline' => $tender->reason_of_decline,
                 'focalPoints' => $tender->focalPoints->toArray(),
             ]);
-
-            
         }
 
-        
+
 
         $this->isEditMode = $editMode;
         $this->showingTenderModal = true;
@@ -156,11 +159,11 @@ class Dashboard extends Component
 
     public function removeFocalPoint(int $index): void
     {     // تاكد هل العنصر بالفعل موجود
-    if (isset($this->focalPoints[$index])) {
-        unset($this->focalPoints[$index]);
-        // يتم اعادة فهرس بشكل مرتب 
-        $this->focalPoints = array_values($this->focalPoints);
-    }
+        if (isset($this->focalPoints[$index])) {
+            unset($this->focalPoints[$index]);
+            // يتم اعادة فهرس بشكل مرتب 
+            $this->focalPoints = array_values($this->focalPoints);
+        }
     }
 
 
@@ -173,7 +176,7 @@ class Dashboard extends Component
         $internalTendersQuery = InternalTender::select($columns);
         $columns[7] = DB::raw("'other_tender' as tender_type");
         $otherTendersQuery = OtherTender::select($columns);
-        $allTenders = $eTendersQuery->unionAll($internalTendersQuery)->unionAll($otherTendersQuery)->get();
+         $allTenders = $eTendersQuery->unionAll($internalTendersQuery)->unionAll($otherTendersQuery)->get();
 
         $allTenders->transform(function ($tender) {
             if ($tender->status) {

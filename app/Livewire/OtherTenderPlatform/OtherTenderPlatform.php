@@ -14,9 +14,9 @@ class OtherTenderPlatform extends Component
 {
     use WithPagination; //ترقيم
 
-  
+
     protected $paginationTheme = 'bootstrap'; //ستايل الترقيم 
- 
+
 
     // خصائص الواجهة الرئيسية
     public string $search = '';
@@ -53,7 +53,7 @@ class OtherTenderPlatform extends Component
     public string $quarter = '';
     public array $focalPoints = []; // for focalpoint (Person) 
 
-    
+
     protected function rules(): array
     {
         return [
@@ -86,7 +86,7 @@ class OtherTenderPlatform extends Component
     }
 
     //phone wrong msg 
-      protected $messages = [
+    protected $messages = [
         'focalPoints.*.phone.regex' => 'The phone number must be a valid Omani number.',
     ];
 
@@ -102,21 +102,21 @@ class OtherTenderPlatform extends Component
     //     $this->focalPoints[] = ['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => ''];
     // }
 
-      public function addFocalPoint(): void
-{
-    // اذا كان اكثر من 5 
-    if (count($this->focalPoints) >= 5) {
-        session()->flash('focal_point_error', 'You cannot add more than 5 focal points.');
-     
-        return; 
+    public function addFocalPoint(): void
+    {
+        // اذا كان اكثر من 5 
+        if (count($this->focalPoints) >= 5) {
+            session()->flash('focal_point_error', 'You cannot add more than 5 focal points.');
+
+            return;
+        }
+
+        $this->focalPoints[] = ['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => ''];
     }
-    
-    $this->focalPoints[] = ['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => ''];
-}
 
 
 
-     // حذف فوكال بوينت 
+    // حذف فوكال بوينت 
 
     public function removeFocalPoint(int $index): void
     {
@@ -127,7 +127,7 @@ class OtherTenderPlatform extends Component
     public function prepareModal(string $mode, ?int $tenderId = null): void
     {
         $this->resetValidation(); // امسح فالديشن القديم 
-        $this->resetForm();// امسح فيلدس 
+        $this->resetForm(); // امسح فيلدس 
         $this->mode = $mode;
 
         if ($tenderId) { // في حالة موجودة بيانات فوكل و بيانات جدول في داتا اعرضهم 
@@ -137,18 +137,32 @@ class OtherTenderPlatform extends Component
 
         $this->showModal = true;
     }
-    
-    
+
+
 
     //لما تكون فاضية و قيم الافتراضية 
-   
+
     public function resetForm(): void
     {
         $this->reset([
-            'name', 'number', 'client_type', 'date_of_purchase', 'assigned_to', 'date_of_submission',
-            'reviewed_by', 'date_of_submission_ba', 'date_of_submission_after_review', 'has_third_party',
-            'last_follow_up_date', 'follow_up_channel', 'follow_up_notes', 'status', 'reason_of_decline',
-            'quarter', 'focalPoints', 'currentTender'
+            'name',
+            'number',
+            'client_type',
+            'date_of_purchase',
+            'assigned_to',
+            'date_of_submission',
+            'reviewed_by',
+            'date_of_submission_ba',
+            'date_of_submission_after_review',
+            'has_third_party',
+            'last_follow_up_date',
+            'follow_up_channel',
+            'follow_up_notes',
+            'status',
+            'reason_of_decline',
+            'quarter',
+            'focalPoints',
+            'currentTender'
         ]);
         $this->status = 'Pending';
         $this->has_third_party = false;
@@ -175,7 +189,6 @@ class OtherTenderPlatform extends Component
         $this->reason_of_decline = $tender->reason_of_decline;
         $this->quarter = $tender->quarter;
         $this->focalPoints = $tender->focalPoints->toArray();
-        
     }
 
     // احفظ 
@@ -183,7 +196,7 @@ class OtherTenderPlatform extends Component
     public function save(): void
     {
         $validatedData = $this->validate();
-        
+
         $dateFields = [
             'date_of_purchase',
             'date_of_submission_ba',
@@ -199,7 +212,7 @@ class OtherTenderPlatform extends Component
 
         $tenderData = collect($validatedData)->except('focalPoints')->toArray();
 
-         
+
         if ($this->mode === 'add') {
             $tender = Tender::create($tenderData);
             if (!empty($validatedData['focalPoints'])) {
@@ -262,7 +275,7 @@ class OtherTenderPlatform extends Component
 
     //excel 
 
-         public function exportSimpleExcel()
+    public function exportSimpleExcel()
     {
         //  بناء الاستعلام مع نفس الفلاتر المستخدمة في العرض
         $query = \App\Models\OtherTenderPlatform\OtherTender::query()
@@ -291,18 +304,43 @@ class OtherTenderPlatform extends Component
     }
 
     // للبحث 
-     public function render()
+    public function render()
     {
         $query = Tender::query();
+        // if ($this->search) {
+        //     $query->where(fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('client_type', 'like', "%{$this->search}%"));
+        // }
+
         if ($this->search) {
-            $query->where(fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('client_type', 'like', "%{$this->search}%"));
+            $query->where(function ($q) {
+                $columns = [
+                    'name',
+                    'client_type',
+                    'assigned_to',
+                    'status',
+                    'number',
+                    'date_of_submission',
+                ];
+
+                foreach ($columns as $col) {
+                    $q->orWhere($col, 'like', "%{$this->search}%");
+                }
+            });
         }
-        if ($this->quarterFilter) { 
+
+
+        if ($this->quarterFilter) {
             $query->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]);
         }
-        if ($this->statusFilter) { $query->where('status', $this->statusFilter); }
-        if ($this->assignedFilter) { $query->where('assigned_to', $this->assignedFilter); }
-        if ($this->clientFilter) { $query->where('client_type', 'like', "%{$this->clientFilter}%"); }
+        if ($this->statusFilter) {
+            $query->where('status', $this->statusFilter);
+        }
+        if ($this->assignedFilter) {
+            $query->where('assigned_to', $this->assignedFilter);
+        }
+        if ($this->clientFilter) {
+            $query->where('client_type', 'like', "%{$this->clientFilter}%");
+        }
 
         $tenders = $query->latest('date_of_purchase')->paginate(5); //عدد الصفوف  في جدول 
         $uniqueClients = Tender::select('client_type')->whereNotNull('client_type')->distinct()->pluck('client_type');
