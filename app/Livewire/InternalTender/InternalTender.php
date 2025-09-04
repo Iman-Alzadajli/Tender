@@ -101,16 +101,24 @@ class InternalTender extends Component
     //     $this->focalPoints[] = ['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => ''];
     // }
 
+    public $focalPointError = ''; // خاصية لحفظ الرسالة
+
     public function addFocalPoint(): void
     {
-        // في حالة اكثر من 5 
         if (count($this->focalPoints) >= 5) {
-            session()->flash('focal_point_error', 'You cannot add more than 5 focal points.');
-
+            $this->focalPointError = 'You cannot add more than 5 focal points.';
             return;
         }
-        //  إذا كان العدد أقل من 5، قم بالإضافة كالمعتاد
-        $this->focalPoints[] = ['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => ''];
+
+        // مسح الرسالة القديمة
+        $this->focalPointError = '';
+
+        $this->focalPoints[] = [
+            'name' => '',
+            'phone' => '',
+            'email' => '',
+            'department' => ''
+        ];
     }
 
     public function removeFocalPoint(int $index): void

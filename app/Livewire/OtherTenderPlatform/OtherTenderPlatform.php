@@ -102,16 +102,24 @@ class OtherTenderPlatform extends Component
     //     $this->focalPoints[] = ['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => ''];
     // }
 
+    public $focalPointError = ''; // خاصية لحفظ الرسالة
+
     public function addFocalPoint(): void
     {
-        // اذا كان اكثر من 5 
         if (count($this->focalPoints) >= 5) {
-            session()->flash('focal_point_error', 'You cannot add more than 5 focal points.');
-
+            $this->focalPointError = 'You cannot add more than 5 focal points.';
             return;
         }
 
-        $this->focalPoints[] = ['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => ''];
+        // مسح الرسالة القديمة
+        $this->focalPointError = '';
+
+        $this->focalPoints[] = [
+            'name' => '',
+            'phone' => '',
+            'email' => '',
+            'department' => ''
+        ];
     }
 
 

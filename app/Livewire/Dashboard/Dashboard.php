@@ -15,10 +15,6 @@ class Dashboard extends Component
 {
 
 
-
-
-
-
     // --- خصائص النافذة المنبثقة (Modal) والفورم ---
     public $showingTenderModal = false;
     public $isEditMode = false;
@@ -146,8 +142,18 @@ class Dashboard extends Component
     }
 
 
+    public $focalPointError = ''; // خاصية لحفظ الرسالة
+
     public function addFocalPoint(): void
     {
+        if (count($this->focalPoints) >= 5) {
+            $this->focalPointError = 'You cannot add more than 5 focal points.';
+            return;
+        }
+
+        // مسح الرسالة القديمة
+        $this->focalPointError = '';
+
         $this->focalPoints[] = [
             'name' => '',
             'phone' => '',
@@ -155,7 +161,6 @@ class Dashboard extends Component
             'department' => ''
         ];
     }
-
 
     public function removeFocalPoint(int $index): void
     {     // تاكد هل العنصر بالفعل موجود
@@ -176,7 +181,7 @@ class Dashboard extends Component
         $internalTendersQuery = InternalTender::select($columns);
         $columns[7] = DB::raw("'other_tender' as tender_type");
         $otherTendersQuery = OtherTender::select($columns);
-         $allTenders = $eTendersQuery->unionAll($internalTendersQuery)->unionAll($otherTendersQuery)->get();
+        $allTenders = $eTendersQuery->unionAll($internalTendersQuery)->unionAll($otherTendersQuery)->get();
 
         $allTenders->transform(function ($tender) {
             if ($tender->status) {

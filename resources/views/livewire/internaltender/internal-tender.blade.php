@@ -229,6 +229,17 @@
                             <!--btn for add person-->
                             @if($mode != 'view')<button wire:click.prevent="addFocalPoint" type="button" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus"></i> Add Person</button>@endif
                         </div>
+
+                        {{-- رسالة الخطأ عند تجاوز الحد --}}
+                        @if($focalPointError)
+                        <div class="alert alert-warning alert-dismissible fade show">
+                            {{ $focalPointError }}
+                            <button type="button" class="btn-close" wire:click="$set('focalPointError', '')"></button>
+                        </div>
+                        @endif
+
+
+
                         @error('focalPoints')<div class="alert alert-danger p-2 mb-3">{{ $message }}</div>@enderror
                         @foreach($focalPoints as $index => $focalPoint)
                         <div class="card mb-3">
