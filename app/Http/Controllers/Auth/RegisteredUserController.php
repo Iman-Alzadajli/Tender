@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Str; /* for token */
+
 
 
 class RegisteredUserController extends Controller
@@ -51,6 +53,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+              'api_token' => Str::random(60), // توليد توكن عشوائي لكل مستخدم جديد 
         ]);
 
         event(new Registered($user));
