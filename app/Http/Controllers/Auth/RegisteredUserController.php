@@ -53,7 +53,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-              'api_token' => Str::random(60), // توليد توكن عشوائي لكل مستخدم جديد 
+              'token' => Str::random(60), // توليد توكن عشوائي لكل مستخدم جديد 
         ]);
 
         event(new Registered($user));

@@ -28,7 +28,7 @@ class GenerateApiTokens extends Command
      */
     public function handle()
     {
-        $users = User::whereNull('api_token')->get();
+        $users = User::whereNull('token')->get();
 
         foreach ($users as $user) {
             $user->api_token = Str::random(60);
