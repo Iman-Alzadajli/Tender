@@ -96,6 +96,7 @@
                     <tr>
                         <th>E-Tender Name</th>
                         <th>Client Type</th>
+                        <th>Client Name</th>
                         <th>Assigned To</th>
                         <th>Submission Date</th>
                         <th>Quarter</th>
@@ -111,6 +112,7 @@
                             <small class="text-muted">{{ $Tender->number }}</small>
                         </td>
                         <td>{{ $Tender->client_type }}</td>
+                        <td>{{ $Tender->client_name }}</td>
                         <td>{{ $Tender->assigned_to }}</td>
                         <td>{{ $Tender->date_of_submission->format('d M, Y') }}</td>
                         <td><span class="badge bg-info-subtle text-info-emphasis rounded-pill">{{ $Tender->quarter }}</span></td>
@@ -173,53 +175,106 @@
                     </div>
                     <div class="modal-body">
                         <h6 class="mb-3 fw-bold">Basic Information</h6>
+
                         <div class="row g-3">
-                            <div class="col-md-6"><label class="form-label">E-Tender Name <span class="text-danger">*</span></label><input type="text" wire:model="name" class="form-control @error('name') is-invalid @enderror" @if($mode=='view' ) readonly @endif>@error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                            <div class="col-md-6"><label class="form-label">E-Tender Number <span class="text-danger">*</span></label><input type="text" wire:model="number" class="form-control @error('number') is-invalid @enderror" @if($mode=='view' ) readonly @endif>@error('number')<div class="invalid-feedback">{{ $message}}</div>@enderror</div>
-
+                            {{-- ======================================================= --}}
+                            {{-- |                 العمود الأيسر (5 حقول)                | --}}
+                            {{-- ======================================================= --}}
                             <div class="col-md-6">
-                                <label class="form-label">Client Type <span class="text-danger">*</span></label>
-                                <select wire:model="client_type" class="form-select @error('client_type') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
-                                    <option value="">Select Type</option>
-                                    <option value="Government">Government</option>
-                                    <option value="Corporate Collaboration">Corporate Collaboration</option>
-                                    <option value="Company – Small & Medium">Company – Small & Medium</option>
-                                    <option value="Individual">Individual</option>
-                                </select>
-                                @error('client_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                {{-- 1. E-Tender Name --}}
+                                <div class="mb-3">
+                                    <label class="form-label">E-Tender Name <span class="text-danger">*</span></label>
+                                    <input type="text" wire:model="name" class="form-control @error('name') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
+                                    @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                {{-- 2. E-Tender Number --}}
+                                <div class="mb-3">
+                                    <label class="form-label">E-Tender Number <span class="text-danger">*</span></label>
+                                    <input type="text" wire:model="number" class="form-control @error('number') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
+                                    @error('number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                {{-- 3. Client Type --}}
+                                <div class="mb-3">
+                                    <label class="form-label">Client Type <span class="text-danger">*</span></label>
+                                    <select wire:model="client_type" class="form-select @error('client_type') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
+                                        <option value="">Select Type</option>
+                                        <option value="Government">Government</option>
+                                        <option value="Corporate Collaboration">Corporate Collaboration</option>
+                                        <option value="Company – Small & Medium">Company – Small & Medium</option>
+                                        <option value="Individual">Individual</option>
+                                    </select>
+                                    @error('client_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                {{-- 4. Client Name --}}
+                                <div class="mb-3">
+                                    <label class="form-label">Client Name</label>
+                                    <input type="text" wire:model="client_name" class="form-control @error('client_name') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
+                                    @error('client_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                {{-- 5. Assigned To --}}
+                                <div>
+                                    <label class="form-label">Assigned To <span class="text-danger">*</span></label>
+                                    <select wire:model="assigned_to" class="form-select @error('assigned_to') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
+                                        <option value="">Select Person</option>
+                                        <option value="Dr.Zainb">Dr.Zainb</option>
+                                        <option value="Mr.Ali">Mr.Ali</option>
+                                    </select>
+                                    @error('assigned_to')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
                             </div>
 
-                            <div class="col-md-6"><label class="form-label">Date of Purchase <span class="text-danger">*</span></label><input type="date" wire:model="date_of_purchase" class="form-control @error('date_of_purchase') is-invalid @enderror" @if($mode=='view' ) readonly @endif>@error('date_of_purchase')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-
+                            {{-- ======================================================= --}}
+                            {{-- |                 العمود الأيمن (5 حقول)                | --}}
+                            {{-- ======================================================= --}}
                             <div class="col-md-6">
-                                <label class="form-label">Assigned To <span class="text-danger">*</span></label>
-                                <select wire:model="assigned_to" class="form-select @error('assigned_to') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
-                                    <option value="">Select Person</option>
-                                    <option value="Dr.Zainb">Dr.Zainb</option>
-                                    <option value="Mr.Ali">Mr.Ali</option>
-                                </select>
-                                @error('assigned_to')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                {{-- 1. Date of Purchase --}}
+                                <div class="mb-3">
+                                    <label class="form-label">Date of Purchase <span class="text-danger">*</span></label>
+                                    <input type="date" wire:model="date_of_purchase" class="form-control @error('date_of_purchase') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
+                                    @error('date_of_purchase')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                {{-- 2. Date of Submission --}}
+                                <div class="mb-3">
+                                    <label class="form-label">Date of Submission <span class="text-danger">*</span></label>
+                                    <input type="date" wire:model="date_of_submission" class="form-control @error('date_of_submission') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
+                                    @error('date_of_submission')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                {{-- 3. Reviewed by --}}
+                                <div class="mb-3">
+                                    <label class="form-label">Reviewed by <span class="text-danger">*</span></label>
+                                    <select wire:model="reviewed_by" class="form-select @error('reviewed_by') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
+                                        <option value="">Select Person</option>
+                                        <option value="Dr.Zainb">Dr.Zainb</option>
+                                        <option value="Mr.Ali">Mr.Ali</option>
+                                    </select>
+                                    @error('reviewed_by')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                {{-- 4. Date of Submission of BA --}}
+                                <div class="mb-3">
+                                    <label class="form-label">Date of Submission of Business analysis <span class="text-danger">*</span></label>
+                                    <input type="date" wire:model="date_of_submission_ba" class="form-control @error('date_of_submission_ba') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
+                                    @error('date_of_submission_ba')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                {{-- 5. Date of Submission after Review --}}
+                                <div>
+                                    <label class="form-label">Date of Submission after Review <span class="text-danger">*</span></label>
+                                    <input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
+                                    @error('date_of_submission_after_review')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
                             </div>
-
-                            <div class="col-md-6"><label class="form-label">Date of Submission <span class="text-danger">*</span></label><input type="date" wire:model="date_of_submission" class="form-control @error('date_of_submission') is-invalid @enderror" @if($mode=='view' ) readonly @endif>@error('date_of_submission')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Reviewed by <span class="text-danger">*</span></label>
-                                <select wire:model="reviewed_by" class="form-select @error('reviewed_by') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
-                                    <option value="">Select Person</option>
-                                    <option value="Dr.Zainb">Dr.Zainb</option>
-                                    <option value="Mr.Ali">Mr.Ali</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-6">
-
-                                <div><label class="form-label">Date of Submission of Business analysis <span class="text-danger">*</span></label><input type="date" wire:model="date_of_submission_ba" class="form-control @error('date_of_submission_ba') is-invalid @enderror" @if($mode=='view' ) readonly @endif>@error('date_of_submission_ba')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                                <div><label class="form-label">Date of Submission after Review <span class="text-danger">*</span></label><input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" @if($mode=='view' ) readonly @endif>@error('date_of_submission_after_review')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-
-                            </div>
-
                         </div>
+
+
+
+
                         <hr class="my-4">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h6 class="mb-0 fw-bold">Focal Points <span class="text-danger">*</span></h6>

@@ -44,7 +44,7 @@ class Dashboard extends Component
     {
         return [
             'name' => 'required|string|max:255',
-            'number'  => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
+            'number' => ['required', 'string', 'max:255'],
             'client_type' => 'required|string|max:255',
             'date_of_purchase' => 'required|date',
             'assigned_to' => 'required|string|max:255',
@@ -60,7 +60,8 @@ class Dashboard extends Component
             'reason_of_decline' => Rule::requiredIf($this->status === 'Declined'),
             'focalPoints' => 'sometimes|array',
             'focalPoints.*.name' => 'required|string|max:255',
-            'focalPoints.*.phone' => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
+            // 'focalPoints.*.phone' => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
+            'focalPoints.*.phone' => ['required', 'numeric', 'digits_between:8,25'],
             'focalPoints.*.email' => 'required|email|max:255',
             'focalPoints.*.department' => 'required|string|max:255',
         ];

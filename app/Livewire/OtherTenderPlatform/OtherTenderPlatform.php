@@ -35,6 +35,7 @@ class OtherTenderPlatform extends Component
     public string $name = '';
     public string $number = '';
     public string $client_type = '';
+    public string $client_name = '';
     public string $date_of_purchase = '';
     public string $assigned_to = '';
     public string $date_of_submission = '';
@@ -58,8 +59,9 @@ class OtherTenderPlatform extends Component
     {
         return [
             'name' => 'required|string|max:255',
-            'number' => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
+            'number' => ['required', 'string', 'max:255'],
             'client_type' => 'required|string|max:255',
+            'client_name' => 'required|string|max:255',
             'date_of_purchase' => 'required|date',
             'assigned_to' => 'required|string|max:255',
             'date_of_submission' => 'required|date',
@@ -74,7 +76,7 @@ class OtherTenderPlatform extends Component
             'reason_of_decline' => Rule::requiredIf($this->status === 'Declined'),
             'focalPoints' => 'required|array|min:1',
             'focalPoints.*.name' => 'required|string|max:255',
-            'focalPoints.*.phone' => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
+            'focalPoints.*.phone' => ['required', 'numeric', 'digits_between:8,25'],
             'focalPoints.*.email' => 'required|email|max:255',
             'focalPoints.*.department' => 'required|string|max:255',
             'focalPoints.*.other_info' => 'nullable|string',
@@ -156,6 +158,7 @@ class OtherTenderPlatform extends Component
             'name',
             'number',
             'client_type',
+            'client_name',
             'date_of_purchase',
             'assigned_to',
             'date_of_submission',
@@ -183,6 +186,7 @@ class OtherTenderPlatform extends Component
         $this->name = $tender->name;
         $this->number = $tender->number;
         $this->client_type = $tender->client_type;
+        $this->client_name = $tender->client_name;
         $this->date_of_purchase = $tender->date_of_purchase?->format('Y-m-d');
         $this->assigned_to = $tender->assigned_to;
         $this->date_of_submission = $tender->date_of_submission?->format('Y-m-d');

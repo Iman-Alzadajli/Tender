@@ -17,6 +17,7 @@ class InternalTender extends Model
         'name',
         'number',
         'client_type', 
+        'client_name',
         'assigned_to',
         'date_of_purchase',
         'date_of_submission',
