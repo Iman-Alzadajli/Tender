@@ -11,8 +11,29 @@ class ETender extends Model
 {
     use HasFactory;
 
-    // السماح بالحفظ الجماعي لجميع الحقول
-    protected $guarded = [];
+    // // السماح بالحفظ الجماعي لجميع الحقول
+    // protected $guarded = [];
+    protected $table = 'e_tenders';
+
+    protected $fillable = [
+        'name',
+        'number',
+        'client_type',
+        'client_name',
+        'assigned_to',
+        'date_of_purchase',
+        'date_of_submission',
+        'reviewed_by',
+        'date_of_submission_ba',
+        'date_of_submission_after_review',
+        'has_third_party',
+        'last_follow_up_date',
+        'follow_up_channel',
+        'follow_up_notes',
+        'status',
+        'reason_of_cancel',
+
+    ];
 
     // تحويل تواريخ طؤيقة كتابة 
     protected $casts = [
@@ -27,7 +48,7 @@ class ETender extends Model
     protected function quarter(): Attribute
     {
         return Attribute::make(
-            get: fn () => 'Q' . ceil($this->date_of_submission->month / 3),
+            get: fn() => 'Q' . ceil($this->date_of_submission->month / 3),
         );
     }
 

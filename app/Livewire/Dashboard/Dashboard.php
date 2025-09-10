@@ -3,13 +3,15 @@
 namespace App\Livewire\Dashboard;
 
 use Livewire\Component;
-use Livewire\WithPagination; // لترقيم 
 use App\Models\ETender\ETender;
 use App\Models\InternalTender\InternalTender;
 use App\Models\OtherTenderPlatform\OtherTender;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use App\Models\User;
+
+
 
 class Dashboard extends Component
 {
@@ -20,11 +22,13 @@ class Dashboard extends Component
     public $isEditMode = false;
     public ?int $tenderId = null;
     public ?string $tenderModelClass = null;
+    public $users;
 
     // --- خصائص الفورم الكاملة ---
     public string $name = '';
     public string $number = '';
     public string $client_type = '';
+    public string $client_name = '';
     public string $date_of_purchase = '';
     public string $assigned_to = '';
     public string $date_of_submission = '';
@@ -35,9 +39,14 @@ class Dashboard extends Component
     public string $last_follow_up_date = '';
     public string $follow_up_channel = '';
     public string $follow_up_notes = '';
-    public string $status = 'Pending';
-    public string $reason_of_decline = '';
+    public string $status = 'Recall';
+    public string $reason_of_cancel = '';
     public array $focalPoints = [];
+
+    public function mount()
+    {
+        $this->users = User::orderBy('name')->get(['id', 'name']);
+    }
 
     // --- قواعد التحقق ---
     protected function rules(): array
@@ -46,6 +55,7 @@ class Dashboard extends Component
             'name' => 'required|string|max:255',
             'number' => ['required', 'string', 'max:255'],
             'client_type' => 'required|string|max:255',
+            'client_name' => 'required|string|max:255',
             'date_of_purchase' => 'required|date',
             'assigned_to' => 'required|string|max:255',
             'date_of_submission' => 'required|date',
@@ -56,8 +66,8 @@ class Dashboard extends Component
             'last_follow_up_date' => 'required|date',
             'follow_up_channel' => 'required|string',
             'follow_up_notes' => 'nullable|string',
-            'status' => 'required|string|in:Pending,Declined,Closed,Open,Under Evaluation',
-            'reason_of_decline' => Rule::requiredIf($this->status === 'Declined'),
+            'status' => 'required|string|in:Recall,Awarded to Company (win),BuildProposal,Under Evaluation,Awarded to Others (loss),Cancel',
+            'reason_of_cancel' => Rule::requiredIf($this->status === 'Cancel'),
             'focalPoints' => 'sometimes|array',
             'focalPoints.*.name' => 'required|string|max:255',
             // 'focalPoints.*.phone' => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
@@ -92,6 +102,7 @@ class Dashboard extends Component
                 'name' => $tender->name,
                 'number' => $tender->number,
                 'client_type' => $tender->client_type,
+                'client_name' => $tender->client_name,
                 'date_of_purchase' => $tender->date_of_purchase?->format('Y-m-d'),
                 'assigned_to' => $tender->assigned_to,
                 'date_of_submission' => $tender->date_of_submission?->format('Y-m-d'),
@@ -103,7 +114,7 @@ class Dashboard extends Component
                 'follow_up_channel' => $tender->follow_up_channel,
                 'follow_up_notes' => $tender->follow_up_notes,
                 'status' => $tender->status,
-                'reason_of_decline' => $tender->reason_of_decline,
+                'reason_of_cancel' => $tender->reason_of_cancel,
                 'focalPoints' => $tender->focalPoints->toArray(),
             ]);
         }
@@ -175,38 +186,47 @@ class Dashboard extends Component
 
     public function render()
     {
-        // --- جلب البيانات في كل مرة ---
-        $columns = ['id', 'name', 'status', 'date_of_submission', 'client_type', 'number', 'assigned_to', DB::raw("'e_tender' as tender_type")];
+        // --- الخطوة 1: جلب البيانات من جميع الجداول (نظيفة وغير معدلة) ---
+        $columns = ['id', 'name', 'status', 'date_of_submission', 'client_type', 'client_name', 'number', 'assigned_to', DB::raw("'e_tender' as tender_type")];
         $eTendersQuery = ETender::select($columns);
-        $columns[7] = DB::raw("'internal_tender' as tender_type");
+        $columns[8] = DB::raw("'internal_tender' as tender_type");
         $internalTendersQuery = InternalTender::select($columns);
-        $columns[7] = DB::raw("'other_tender' as tender_type");
+        $columns[8] = DB::raw("'other_tender' as tender_type");
         $otherTendersQuery = OtherTender::select($columns);
-        $allTenders = $eTendersQuery->unionAll($internalTendersQuery)->unionAll($otherTendersQuery)->get();
+        $allTenders = $eTendersQuery->unionAll($internalTendersQuery)
+            ->unionAll($otherTendersQuery)
+            ->get();
 
-        $allTenders->transform(function ($tender) {
-            if ($tender->status) {
-                $status = strtolower(trim($tender->status));
-                if ($status === 'close') $status = 'closed';
-                $tender->status = str_replace(' ', '_', $status);
-            }
-            return $tender;
-        });
-
-        $activeStatuses = ['open', 'pending', 'under_evaluation'];
+        // --- الخطوة 2: فلترة المناقصات العاجلة (باستخدام النسخة الأصلية النظيفة) ---
+        // يتم البحث بالأسماء الصحيحة كما هي في قاعدة البيانات (مع المسافات والأقواس)
+        $activeStatuses = ['Recall', 'Under Evaluation', 'Awarded to Company (win)', 'BuildProposal'];
         $urgentTenders = $allTenders->whereIn('status', $activeStatuses)
             ->whereNotNull('date_of_submission')
             ->filter(fn($t) => Carbon::parse($t->date_of_submission)->between(Carbon::today(), Carbon::today()->addDays(3)))
             ->sortBy('date_of_submission');
 
+        // --- الخطوة 3: حساب إحصائيات بطاقات الحالة (باستخدام transform داخل الدالة فقط) ---
+        // هذا الكود يحسب الإحصائيات دون تعديل مجموعة البيانات الأصلية $allTenders
+        $statusCounts = $allTenders->countBy(function ($tender) {
+            // هذا هو المكان الصحيح للتعامل مع المسافات والأقواس
+            // يحول 'Awarded to Company (win)' إلى 'awarded_to_company_win'
+            return str_replace([' ', '(', ')'], ['_', '', ''], strtolower($tender->status));
+        });
+
+        // --- الخطوة 4: حساب إحصائيات الرسوم البيانية (لا تحتاج إلى تعديل) ---
         $tendersByQuarter = $allTenders->whereNotNull('date_of_submission')
             ->groupBy(fn($t) => "Q" . Carbon::parse($t->date_of_submission)->quarter)
             ->map->count();
-        $tenderQuantities = ['Q1' => $tendersByQuarter->get('Q1', 0), 'Q2' => $tendersByQuarter->get('Q2', 0), 'Q3' => $tendersByQuarter->get('Q3', 0), 'Q4' => $tendersByQuarter->get('Q4', 0)];
+        $tenderQuantities = [
+            'Q1' => $tendersByQuarter->get('Q1', 0),
+            'Q2' => $tendersByQuarter->get('Q2', 0),
+            'Q3' => $tendersByQuarter->get('Q3', 0),
+            'Q4' => $tendersByQuarter->get('Q4', 0)
+        ];
 
-        // --- تمرير البيانات مباشرة إلى الواجهة ---
+        // --- الخطوة 5: تمرير كل البيانات النهائية إلى الواجهة ---
         return view('livewire.dashboard.dashboard', [
-            'statusCounts' => $allTenders->countBy('status'),
+            'statusCounts' => $statusCounts,
             'urgentTenders' => $urgentTenders,
             'tenderQuantitiesJson' => json_encode($tenderQuantities),
             'clientTypesJson' => json_encode($allTenders->whereNotNull('client_type')->countBy('client_type')),

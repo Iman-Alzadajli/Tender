@@ -30,7 +30,7 @@ class OtherTender extends Model
         'follow_up_channel',
         'follow_up_notes',
         'status',
-        'reason_of_decline',
+        'reason_of_cancel',
     ];
 
     protected $casts = [

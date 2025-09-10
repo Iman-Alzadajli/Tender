@@ -22,9 +22,10 @@
 }
 
 
-.card.status-card.border-primary:hover {
-    background-color: #0d6efd
+.card.status-card.border-success:hover {
+    background-color: #198754; 
 }
+
 
 .card.status-card.border-warning:hover {
     background-color: #ffc107
@@ -42,6 +43,12 @@
     background-color: #dc3545;
 }
 
+.card.status-card.border-primary:hover {
+    background-color: #0d6efd;
+}
+
+
+
 th, td {
     text-align: center;
   
@@ -51,3 +58,18 @@ th, td {
   .modal-dialog-scrollable .modal-content {
            overflow-y: scroll;
         }
+
+
+        /* On medium screens (tablets, 768px and up), make icons slightly smaller */
+@media (max-width: 992px) {
+    .status-card .bi {
+        font-size: 2.25rem !important; /* Slightly smaller than fs-1 */
+    }
+    .status-card .fs-4 {
+        font-size: 1.25rem !important; /* Slightly smaller number */
+    }
+
+
+
+}
+

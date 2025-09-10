@@ -8,6 +8,7 @@ use Livewire\Attributes\Layout;
 use App\Models\OtherTenderPlatform\OtherTender  as Tender;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\User;
 
 #[Layout('layouts.app')]
 class OtherTenderPlatform extends Component
@@ -35,7 +36,7 @@ class OtherTenderPlatform extends Component
     public string $name = '';
     public string $number = '';
     public string $client_type = '';
-    public string $client_name = '';
+    public? string $client_name = '';
     public string $date_of_purchase = '';
     public string $assigned_to = '';
     public string $date_of_submission = '';
@@ -49,10 +50,18 @@ class OtherTenderPlatform extends Component
     public string $last_follow_up_date = '';
     public string $follow_up_channel = '';
     public string $follow_up_notes = '';
-    public string $status = 'Pending';
-    public string $reason_of_decline = '';
+    public string $status = 'Recall';
+    public string $reason_of_cancel = '';
     public string $quarter = '';
     public array $focalPoints = []; // for focalpoint (Person) 
+    public $users = []; // for assigned to (user)
+
+
+    //اظهار اسماء يوسر في اساين تو 
+    public function mount()
+    {
+        $this->users = User::all(['id', 'name']);
+    }
 
 
     protected function rules(): array
@@ -72,8 +81,8 @@ class OtherTenderPlatform extends Component
             'last_follow_up_date' => 'required|date',
             'follow_up_channel' => 'required|string',
             'follow_up_notes' => 'nullable|string',
-            'status' => 'required|string|in:Pending,Declined,Close,Open,Under Evaluation',
-            'reason_of_decline' => Rule::requiredIf($this->status === 'Declined'),
+            'status' => 'required|string|in:Recall,Cancel,Awarded to Others (loss),Awarded to Company (win),BuildProposal,Under Evaluation',
+            'reason_of_cancel' => Rule::requiredIf($this->status === 'Cancel'),
             'focalPoints' => 'required|array|min:1',
             'focalPoints.*.name' => 'required|string|max:255',
             'focalPoints.*.phone' => ['required', 'numeric', 'digits_between:8,25'],
@@ -170,12 +179,12 @@ class OtherTenderPlatform extends Component
             'follow_up_channel',
             'follow_up_notes',
             'status',
-            'reason_of_decline',
+            'reason_of_cancel',
             'quarter',
             'focalPoints',
             'currentTender'
         ]);
-        $this->status = 'Pending';
+        $this->status = 'Recall';
         $this->has_third_party = false;
         $this->focalPoints = [['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => '']];
     }
@@ -198,7 +207,7 @@ class OtherTenderPlatform extends Component
         $this->follow_up_channel = $tender->follow_up_channel;
         $this->follow_up_notes = $tender->follow_up_notes;
         $this->status = $tender->status;
-        $this->reason_of_decline = $tender->reason_of_decline;
+        $this->reason_of_cancel = $tender->reason_of_cancel;
         $this->quarter = $tender->quarter;
         $this->focalPoints = $tender->focalPoints->toArray();
     }

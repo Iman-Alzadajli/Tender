@@ -69,11 +69,12 @@
                     </select></div>
                 <div class="col-sm-6 col-md-3"><select wire:model.live="statusFilter" class="form-select">
                         <option value="">All Statuses</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Open">Open</option>
+                        <option value="Recall">Recall</option>
+                        <option value="BuildProposal">Build Proposal</option>
+                        <option value="Awarded to Company (win)">Awarded to Company (win)</option>
                         <option value="Under Evaluation">Under Evaluation</option>
-                        <option value="Close">Close</option>
-                        <option value="Declined">Declined</option>
+                        <option value="Awarded to Others (loss)">Awarded to Others (loss)</option>
+                        <option value="Cancel">Cancel</option>
                     </select></div>
                 <div class="col-sm-6 col-md-3"><select wire:model.live="assignedFilter" class="form-select">
                         <option value="">All Assignees</option>@foreach ($uniqueAssignees as $assignee)<option value="{{ $assignee }}">{{ $assignee }}</option>@endforeach
@@ -118,22 +119,21 @@
                         <td><span class="badge bg-info-subtle text-info-emphasis rounded-pill">{{ $Tender->quarter }}</span></td>
                         <td>
                             <span class="badge rounded-pill
-                                  @if($Tender->status == 'Approved') 
-                                   bg-success-subtle text-success-emphasis
-                                  @elseif($Tender->status == 'Pending') 
-                                   bg-warning-subtle text-warning-emphasis
-                                  @elseif($Tender->status == 'Open')
-                                   bg-primary-subtle text-primary-emphasis
-                                  @elseif($Tender->status == 'Under Evaluation')
-                                   bg-info-subtle text-info-emphasis
-                                  @elseif($Tender->status == 'Close')
-                                   bg-secondary-subtle text-secondary-emphasis
-                                  @else {{-- اذا Declined --}}
-                                   bg-danger-subtle text-danger-emphasis 
-                                  @endif">
+                            @if($Tender->status == 'Awarded to Company (win)')
+                            bg-success-subtle text-success-emphasis  {{-- لون الفوز (أخضر) --}}
+                            @elseif($Tender->status == 'Recall')
+                            bg-warning-subtle text-warning-emphasis  {{-- لون الاستدعاء (أصفر) --}}
+                            @elseif($Tender->status == 'BuildProposal')
+                            bg-primary-subtle text-primary-emphasis   
+                            @elseif($Tender->status == 'Under Evaluation')
+                            bg-info-subtle text-info-emphasis       {{-- لون تحت التقييم (أزرق) --}}
+                            @elseif($Tender->status == 'Awarded to Others (loss)')
+                            bg-secondary-subtle text-secondary-emphasis {{-- لون الخسارة (رمادي) --}}
+                            @elseif($Tender->status == 'Cancel')
+                            bg-danger-subtle text-danger-emphasis    {{-- لون الإلغاء (أحمر) --}}
+                            @endif">
                                 {{ $Tender->status }}
                             </span>
-
                         </td>
                         <td>
                             <div class="btn-group">
@@ -174,6 +174,8 @@
                         <button type="button" class="btn-close" wire:click="$set('showModal', false)"></button>
                     </div>
                     <div class="modal-body">
+
+
                         <h6 class="mb-3 fw-bold">Basic Information</h6>
 
                         <div class="row g-3">
@@ -220,8 +222,11 @@
                                     <label class="form-label">Assigned To <span class="text-danger">*</span></label>
                                     <select wire:model="assigned_to" class="form-select @error('assigned_to') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
                                         <option value="">Select Person</option>
-                                        <option value="Dr.Zainb">Dr.Zainb</option>
-                                        <option value="Mr.Ali">Mr.Ali</option>
+                                        {{-- ▼▼▼ هذا هو التعديل الوحيد ▼▼▼ --}}
+                                        @foreach ($users as $user)
+                                        <option value="{{ $user->name }}">{{ $user->name }}</option>
+                                        @endforeach
+                                        {{-- ▲▲▲ نهاية التعديل ▲▲▲ --}}
                                     </select>
                                     @error('assigned_to')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
@@ -250,8 +255,10 @@
                                     <label class="form-label">Reviewed by <span class="text-danger">*</span></label>
                                     <select wire:model="reviewed_by" class="form-select @error('reviewed_by') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
                                         <option value="">Select Person</option>
-                                        <option value="Dr.Zainb">Dr.Zainb</option>
-                                        <option value="Mr.Ali">Mr.Ali</option>
+                                        {{-- هنا أيضًا يمكنك تطبيق نفس المبدأ إذا أردت --}}
+                                        @foreach ($users as $user)
+                                        <option value="{{ $user->name }}">{{ $user->name }}</option>
+                                        @endforeach
                                     </select>
                                     @error('reviewed_by')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
@@ -271,7 +278,6 @@
                                 </div>
                             </div>
                         </div>
-
 
 
 
@@ -389,20 +395,21 @@
                             <div class="col-md-6">
                                 <label class="form-label">Status <span class="text-danger">*</span></label>
                                 <select wire:model.live="status" class="form-select @error('status') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
-                                    <option value="Pending">Pending</option>
-                                    <option value="Open">Open</option>
+                                    <option value="Recall">Recall</option>
+                                    <option value="BuildProposal">Build Proposal</option>
+                                    <option value="Awarded to Company (win)">Awarded to Company (win)</option>
                                     <option value="Under Evaluation">Under Evaluation</option>
-                                    <option value="Close">Close</option>
-                                    <option value="Declined">Declined</option>
+                                    <option value="Awarded to Others (loss)">Awarded to Others (loss)</option>
+                                    <option value="Cancel">Cancel</option>
                                 </select>
                                 @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
 
-                            @if($status === 'Declined')
+                            @if($status === 'Cancel')
                             <div class="col-md-6">
-                                <label class="form-label">Reason of Decline <span class="text-danger">*</span></label>
-                                <textarea wire:model="reason_of_decline" class="form-control @error('reason_of_decline') is-invalid @enderror" rows="1" @if($mode=='view' ) readonly @endif></textarea>
-                                @error('reason_of_decline')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                <label class="form-label">Reason of Cancel <span class="text-danger">*</span></label>
+                                <textarea wire:model="reason_of_cancel" class="form-control @error('reason_of_cancel') is-invalid @enderror" rows="1" @if($mode=='view' ) readonly @endif></textarea>
+                                @error('reason_of_cancel')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             @endif
 

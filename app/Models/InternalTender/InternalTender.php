@@ -13,6 +13,7 @@ class InternalTender extends Model
 
     protected $table = 'internal_tenders';
 
+
     protected $fillable = [
         'name',
         'number',
@@ -29,7 +30,7 @@ class InternalTender extends Model
         'follow_up_channel',
         'follow_up_notes',
         'status',
-        'reason_of_decline',
+        'reason_of_cancel',
        
     ];
 
