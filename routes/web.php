@@ -17,7 +17,9 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', Dashboard::class)->name('dashboard');
+  Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware('auth')->name('dashboard');
 
     // Tender Pages
     Route::get('/internal-tender', InternalTender::class)->name('internal-tender');

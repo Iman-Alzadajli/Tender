@@ -40,6 +40,7 @@ class OtherTender extends Model
         'date_of_submission_after_review' => 'date',
         'last_follow_up_date' => 'date',
         'has_third_party' => 'boolean',
+        
     ];
 
     // protected function quarter(): Attribute
