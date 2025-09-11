@@ -307,26 +307,47 @@ class InternalTender extends Component
     public function exportSimpleExcel()
     {
 
-        $query = \App\Models\InternalTender\InternalTender::query()
+        // نحدد كل الأعمدة التي نريدها في ملف Excel
+        $columnsToExport = [
+            'id',
+            'name',
+            'number',
+            'client_type',
+            'client_name',
+            'assigned_to',
+            'date_of_purchase',
+            'date_of_submission',
+            'reviewed_by',
+            'date_of_submission_ba',
+            'date_of_submission_after_review',
+            'has_third_party',
+            'last_follow_up_date',
+            'follow_up_channel',
+            'follow_up_notes',
+            'status',
+            'reason_of_cancel'
+        ];
+
+        //نطبق نفس الفلاتر الحالية في الواجهة
+        $query = Tender::query() // استخدم Tender::class بدلاً من المسار الكامل
             ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('client_type', 'like', "%{$this->search}%"))
             ->when($this->quarterFilter, fn($q) => $q->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]))
             ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter))
             ->when($this->assignedFilter, fn($q) => $q->where('assigned_to', $this->assignedFilter))
             ->when($this->clientFilter, fn($q) => $q->where('client_type', 'like', "%{$this->clientFilter}%"));
 
-        // كل بيانات بدون ترقيم 
-        $tendersToExport = $query->latest('date_of_purchase')->get();
+        //  نجلب البيانات مع العلاقات (Focal Points) ونحدد الأعمدة
+        $tendersToExport = $query->with('focalPoints')
+            ->select($columnsToExport) //
+            ->orderBy($this->sortBy, $this->sortDir)
+            ->get();
 
-        // عرض على blade 
+        //  نعرض البيانات في ملف Blade
         $view = view('livewire.othertenderplatform.ExcelOther', [
             'tenders' => $tendersToExport
         ])->render();
 
-        // إنشاء اسم الملف
         $filename = 'Tenders-Report-' . now()->format('Y-m-d') . '.xls';
-
-
-        //قابل للتحميل 
 
         return response()->streamDownload(function () use ($view) {
             echo $view;

@@ -2,74 +2,37 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-
-
+use App\Livewire\Dashboard\Dashboard;
 use App\Livewire\InternalTender\InternalTender;
 use App\Livewire\ETender\ETender;
 use App\Livewire\OtherTenderPlatform\OtherTenderPlatform;
-use App\Http\Controllers\TenderDashboardController;
+use App\Livewire\Users\Users;
 
-use App\Livewire\Dashboard\Dashboard;
+// صفحة تسجيل الدخول
+Route::get('/', function () {
+    return view('auth.login');
+});
 
-
-
-
-
-
-
-Route::get('/', function () { return view('auth.login'); }); 
-
-
-
-// Route::get('/dashboard', function () {
-//     return view('dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
-
-
-// Route::get('/dashboard', Dashboard::class)->middleware('auth')->name('dashboard');
-
-
-// Route::get('/dashboard', Dashboard::class)->name('dashboard');
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware('auth')->name('dashboard');
-
-
-// Route::get('/dashboard', [Dashboard::class, 'index'])->name('dashboard');
-
-
+// كل الصفحات التي تتطلب تسجيل الدخول يجب أن تكون داخل هذه المجموعة الواحدة
 Route::middleware('auth')->group(function () {
+
+    // Dashboard
+    Route::get('/dashboard', Dashboard::class)->name('dashboard');
+
+    // Tender Pages
+    Route::get('/internal-tender', InternalTender::class)->name('internal-tender');
+    Route::get('/e-tender', ETender::class)->name('e-tender');
+    Route::get('/other-tender-platform', OtherTenderPlatform::class)->name('other-tender-platform');
+
+    // Users Page
+    Route::get('/users', Users::class)->name('users');
+
+
+    // Profile Page
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
-
-
-
-// the 3 pages 
-
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('/internal-tender', InternalTender::class)->name('internal-tender');
-});
-
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('/e-tender', ETender::class)->name('e-tender');
-});
-
-
-
-
-
-
-Route::get('/other-tender-platform', OtherTenderPlatform::class)->name('other-tender-platform');
-
-//excel 
-
-// Route::get('/othertenderplatform/ExcelOther', [OtherTenderPlatform::class, 'exportSimpleExcel'])->name('export.other.excel');
-
-
+// ✅✅✅ تأكد من وجود هذا السطر في نهاية الملف ✅✅✅
+require __DIR__ . '/auth.php';

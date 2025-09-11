@@ -94,7 +94,7 @@
             <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        {{-- ▼▼▼ هذا هو الكود الجديد بالكامل ▼▼▼ --}}
+                      
                         <th wire:click="setSortBy('name')" style="cursor: pointer;">
                             E-Tender Name
                             @if($sortBy === 'name')
@@ -136,7 +136,7 @@
                             @endif
                         </th>
                         <th>Actions</th>
-                        {{-- ▲▲▲ نهاية الكود الجديد ▲▲▲ --}}
+                    
                     </tr>
                 </thead>
 
@@ -290,7 +290,7 @@
                                     <label class="form-label">Reviewed by <span class="text-danger">*</span></label>
                                     <select wire:model="reviewed_by" class="form-select @error('reviewed_by') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
                                         <option value="">Select Person</option>
-                                        {{-- هنا أيضًا يمكنك تطبيق نفس المبدأ إذا أردت --}}
+                                
                                         @foreach ($users as $user)
                                         <option value="{{ $user->name }}">{{ $user->name }}</option>
                                         @endforeach

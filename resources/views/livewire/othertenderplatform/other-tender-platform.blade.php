@@ -97,7 +97,7 @@
 
                 <thead class="table-light">
                     <tr>
-                        {{-- ▼▼▼ هذا هو الكود الجديد بالكامل ▼▼▼ --}}
+                     
                         <th wire:click="setSortBy('name')" style="cursor: pointer;">
                             E-Tender Name
                             @if($sortBy === 'name')
@@ -139,11 +139,11 @@
                             @endif
                         </th>
                         <th>Actions</th>
-                        {{-- ▲▲▲ نهاية الكود الجديد ▲▲▲ --}}
+                       
                     </tr>
                 </thead>
 
-                
+
                 <tbody>
                     @forelse ($tenders as $tender)
                     <tr>
@@ -260,11 +260,11 @@
                                     <label class="form-label">Assigned To <span class="text-danger">*</span></label>
                                     <select wire:model="assigned_to" class="form-select @error('assigned_to') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
                                         <option value="">Select Person</option>
-                                        {{-- ▼▼▼ هذا هو التعديل الوحيد ▼▼▼ --}}
+                                   
                                         @foreach ($users as $user)
                                         <option value="{{ $user->name }}">{{ $user->name }}</option>
                                         @endforeach
-                                        {{-- ▲▲▲ نهاية التعديل ▲▲▲ --}}
+                             
                                     </select>
                                     @error('assigned_to')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
@@ -293,7 +293,7 @@
                                     <label class="form-label">Reviewed by <span class="text-danger">*</span></label>
                                     <select wire:model="reviewed_by" class="form-select @error('reviewed_by') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
                                         <option value="">Select Person</option>
-                                        {{-- هنا أيضًا يمكنك تطبيق نفس المبدأ إذا أردت --}}
+                                    
                                         @foreach ($users as $user)
                                         <option value="{{ $user->name }}">{{ $user->name }}</option>
                                         @endforeach

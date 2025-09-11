@@ -56,12 +56,12 @@ class ETender extends Model
     {
         return Attribute::make(
             get: function () {
-                // ✅ التأكد من وجود تاريخ قبل محاولة استخدامه
+                //  التأكد من وجود تاريخ قبل محاولة استخدامه
                 if (!$this->date_of_submission) {
                     return null;
                 }
                 $date = \Carbon\Carbon::parse($this->date_of_submission);
-                // ✅✅✅ هذا هو التعديل: نولد مفتاحًا مثل "Q1, 2025" ✅✅✅
+                //  هذا هو التعديل: نولد مفتاحًا مثل "Q1, 2025" 
                 return "Q" . $date->quarter . ", " . $date->year;
             }
         );

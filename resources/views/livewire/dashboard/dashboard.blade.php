@@ -124,10 +124,10 @@
                                     {{-- 1. Tender Name --}}
                                     <td>{{ $tender->name ?? 'N/A' }}</td>
 
-                                    {{-- 2. Client Name (البيانات الصحيحة) --}}
+                                    {{-- 2. Client Name --}}
                                     <td>{{ $tender->client_name ?? 'N/A' }}</td>
 
-                                    {{-- 3. Submission Date (البيانات الصحيحة) --}}
+                                    {{-- 3. Submission Date --}}
                                     <td>{{ \Carbon\Carbon::parse($tender->date_of_submission)->format('d M, Y') }}</td>
 
                                     {{-- 4. Days Left --}}
@@ -155,7 +155,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    {{-- يجب أن يكون colspan="5" الآن --}}
+                                  
                                     <td colspan="5" class="text-center py-4">No urgent tenders found.</td>
                                 </tr>
                                 @endforelse
@@ -255,7 +255,7 @@
                                     <label class="form-label">Assigned To <span class="text-danger">*</span></label>
                                     <select wire:model="assigned_to" class="form-select @error('assigned_to') is-invalid @enderror" @if(!$isEditMode) disabled @endif>
                                         <option value="">-- Select Person --</option>
-                                        {{-- القائمة الديناميكية للمستخدمين --}}
+                                    
                                         @foreach ($users as $user)
                                         <option value="{{ $user->name }}">{{ $user->name }}</option>
                                         @endforeach
@@ -268,7 +268,7 @@
                                     <label class="form-label">Reviewed by <span class="text-danger">*</span></label>
                                     <select wire:model="reviewed_by" class="form-select @error('reviewed_by') is-invalid @enderror" @if(!$isEditMode) disabled @endif>
                                         <option value="">-- Select Person --</option>
-                                        {{-- القائمة الديناميكية للمستخدمين --}}
+                               
                                         @foreach ($users as $user)
                                         <option value="{{ $user->name }}">{{ $user->name }}</option>
                                         @endforeach

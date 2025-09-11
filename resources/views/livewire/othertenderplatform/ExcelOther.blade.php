@@ -3,32 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <title>Tenders Export</title>
+    <style>
+        /* Optional: Basic styling for the table */
+        body { font-family: sans-serif; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #dddddd; text-align: left; padding: 8px; }
+        thead tr { background-color: #f2f2f2; }
+        .section-header { background-color: #e9ecef; font-weight: bold; text-align: center; }
+        .focal-point-header { background-color: #d1e7dd; font-weight: bold; }
+    </style>
 </head>
 <body>
     <table>
         <thead>
             <tr>
-                <th>#</th>
+                {{-- Basic Information --}}
+                <th>ID</th>
                 <th>Tender Name</th>
-                <th>Number</th>
+                <th>Tender Number</th>
                 <th>Client Type</th>
+                <th>Client Name</th>
                 <th>Assigned To</th>
-                <th>Submission Date</th>
+                <th>Date of Purchase</th>
+                <th>Date of Submission</th>
+                <th>Reviewed by</th>
+                <th>Date of Submission of BA</th>
+                <th>Date of Submission after Review</th>
+
+
+                {{-- Follow-up & Status --}}
+                <th>Has Third-Party?</th>
+                <th>Last Follow-up Date</th>
+                <th>Follow-up Channel</th>
+                <th>Follow-up Notes</th>
                 <th>Status</th>
-                <th>Quarter</th>
+                <th>Reason of Cancel</th>
             </tr>
+         
         </thead>
         <tbody>
             @foreach($tenders as $tender)
                 <tr>
+                    {{-- Basic Information --}}
                     <td>{{ $tender->id }}</td>
                     <td>{{ $tender->name }}</td>
                     <td>{{ $tender->number }}</td>
                     <td>{{ $tender->client_type }}</td>
+                    <td>{{ $tender->client_name }}</td>
                     <td>{{ $tender->assigned_to }}</td>
-                    <td>{{ $tender->date_of_submission->format('Y-m-d') }}</td>
+                    <td>{{ $tender->date_of_purchase ? $tender->date_of_purchase->format('Y-m-d') : '' }}</td>
+                    <td>{{ $tender->date_of_submission ? $tender->date_of_submission->format('Y-m-d') : '' }}</td>
+                    <td>{{ $tender->reviewed_by }}</td>
+                    <td>{{ $tender->date_of_submission_ba ? $tender->date_of_submission_ba->format('Y-m-d') : '' }}</td>
+                    <td>{{ $tender->date_of_submission_after_review ? $tender->date_of_submission_after_review->format('Y-m-d') : '' }}</td>
+   
+
+                    {{-- Follow-up & Status --}}
+                    <td>{{ $tender->has_third_party ? 'Yes' : 'No' }}</td>
+                    <td>{{ $tender->last_follow_up_date ? $tender->last_follow_up_date->format('Y-m-d') : '' }}</td>
+                    <td>{{ $tender->follow_up_channel }}</td>
+                    <td>{{ $tender->follow_up_notes }}</td>
                     <td>{{ $tender->status }}</td>
-                    <td>{{ $tender->quarter }}</td>
+                    <td>{{ $tender->reason_of_cancel }}</td>
                 </tr>
             @endforeach
         </tbody>
