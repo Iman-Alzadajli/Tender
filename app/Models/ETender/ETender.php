@@ -45,12 +45,28 @@ class ETender extends Model
         'has_third_party' => 'boolean',
     ];
 
+    // protected function quarter(): Attribute
+    // {
+    //     return Attribute::make(
+    //         get: fn() => 'Q' . ceil($this->date_of_submission->month / 3),
+    //     );
+    // }
+
     protected function quarter(): Attribute
     {
         return Attribute::make(
-            get: fn() => 'Q' . ceil($this->date_of_submission->month / 3),
+            get: function () {
+                // ✅ التأكد من وجود تاريخ قبل محاولة استخدامه
+                if (!$this->date_of_submission) {
+                    return null;
+                }
+                $date = \Carbon\Carbon::parse($this->date_of_submission);
+                // ✅✅✅ هذا هو التعديل: نولد مفتاحًا مثل "Q1, 2025" ✅✅✅
+                return "Q" . $date->quarter . ", " . $date->year;
+            }
         );
     }
+
 
     //  علاقات 
     public function focalPoints(): HasMany

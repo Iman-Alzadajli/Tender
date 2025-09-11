@@ -67,6 +67,7 @@
                         <option value="Q3">Q3</option>
                         <option value="Q4">Q4</option>
                     </select></div>
+
                 <div class="col-sm-6 col-md-3"><select wire:model.live="statusFilter" class="form-select">
                         <option value="">All Statuses</option>
                         <option value="Recall">Recall</option>
@@ -95,16 +96,50 @@
             <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>Tender Name</th>
-                        <th>Client Type</th>
-                        <th>Client Name</th>
-                        <th>Assigned To</th>
-                        <th>Submission Date</th>
+                        <th wire:click="setSortBy('name')" style="cursor: pointer;">
+                            E-Tender Name
+                            @if($sortBy === 'name')
+                            <i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>
+                            @endif
+                        </th>
+                        <th wire:click="setSortBy('client_type')" style="cursor: pointer;">
+                            Client Type
+                            @if($sortBy === 'client_type')
+                            <i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>
+                            @endif
+                        </th>
+                        <th wire:click="setSortBy('client_name')" style="cursor: pointer;">
+                            Client Name
+                            @if($sortBy === 'client_name')
+                            <i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>
+                            @endif
+                        </th>
+                        <th wire:click="setSortBy('assigned_to')" style="cursor: pointer;">
+                            Assigned To
+                            @if($sortBy === 'assigned_to')
+                            <i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>
+                            @endif
+                        </th>
+                        <th wire:click="setSortBy('date_of_submission')" style="cursor: pointer;">
+                            Submission Date
+                            @if($sortBy === 'date_of_submission')
+                            <i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>
+                            @endif
+                        </th>
+
                         <th>Quarter</th>
-                        <th>Status</th>
+
+                        <th wire:click="setSortBy('status')" style="cursor: pointer;">
+                            Status
+                            @if($sortBy === 'status')
+                            <i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>
+                            @endif
+                        </th>
                         <th>Actions</th>
                     </tr>
                 </thead>
+
+
                 <tbody>
                     @forelse ($tenders as $tender)
                     <tr>

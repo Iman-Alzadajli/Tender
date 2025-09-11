@@ -5,7 +5,7 @@ namespace App\Models\InternalTender;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Casts\Attribute; 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class InternalTender extends Model
 {
@@ -17,7 +17,7 @@ class InternalTender extends Model
     protected $fillable = [
         'name',
         'number',
-        'client_type', 
+        'client_type',
         'client_name',
         'assigned_to',
         'date_of_purchase',
@@ -31,7 +31,7 @@ class InternalTender extends Model
         'follow_up_notes',
         'status',
         'reason_of_cancel',
-       
+
     ];
 
     //لتحديد انواع الداتا لهذه الأعمدة 
@@ -49,13 +49,28 @@ class InternalTender extends Model
      * هذ لحساب الربع السنوي تلقائيًا
      * عمود افتراضي 
      */
+    // protected function quarter(): Attribute
+    // {
+    //     return Attribute::make(
+    //         get: fn () => 'Q' . ceil($this->date_of_submission->month / 3),
+    //     );
+    // }
+
     protected function quarter(): Attribute
     {
         return Attribute::make(
-            get: fn () => 'Q' . ceil($this->date_of_submission->month / 3),
+            get: function () {
+             
+                if (!$this->date_of_submission) {
+                    return null;
+                }
+                $date = \Carbon\Carbon::parse($this->date_of_submission);
+             
+                return "Q" . $date->quarter . ", " . $date->year;
+            }
         );
     }
- 
+
     //علاقة 
 
     public function focalPoints(): HasMany

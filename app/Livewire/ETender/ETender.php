@@ -9,6 +9,7 @@ use App\Models\ETender\ETender as Tender;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 #[Layout('layouts.app')]
 class ETender extends Component
@@ -54,6 +55,10 @@ class ETender extends Component
     public string $quarter = '';
     public array $focalPoints = []; // for focalpoint (Person) 
     public $users = []; // for assigned to (user)
+
+
+    public string $sortBy = 'date_of_submission';
+    public string $sortDir = 'DESC';
 
     //اظهار اسماء يوسر في اساين تو 
 
@@ -206,6 +211,18 @@ class ETender extends Component
     }
 
 
+    //ترتيب
+    public function setSortBy($sortByField)
+    {
+        if ($this->sortBy === $sortByField) {
+            $this->sortDir = ($this->sortDir === "ASC") ? 'DESC' : "ASC";
+            return;
+        }
+        $this->sortBy = $sortByField;
+        $this->sortDir = 'DESC';
+    }
+
+
 
 
 
@@ -351,9 +368,27 @@ class ETender extends Component
             });
         }
 
+        // if ($this->quarterFilter) {
+        //     $query->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]);
+        // }
+
+
         if ($this->quarterFilter) {
-            $query->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]);
+            if (in_array($this->quarterFilter, ['Q1', 'Q2', 'Q3', 'Q4'])) {
+                $quarterNumber = substr($this->quarterFilter, 1);
+
+                $query->where(DB::raw('QUARTER(date_of_submission)'), $quarterNumber);
+            }
         }
+
+        // if ($this->quarterFilter) {
+        //     // نبحث عن تطابق تام مع "Q1, 2025"
+        //     $query->whereHas('date_of_submission', function ($q) {
+        //         $parts = explode(', ', $this->quarterFilter);
+        //         $q->where(\Illuminate\Support\Facades\DB::raw('QUARTER(date_of_submission)'), substr($parts[0], 1))
+        //             ->whereYear('date_of_submission', $parts[1]);
+        //     });
+        // }
         if ($this->statusFilter) {
             $query->where('status', $this->statusFilter);
         }
@@ -364,9 +399,16 @@ class ETender extends Component
             $query->where('client_type', 'like', "%{$this->clientFilter}%");
         }
 
-        $tenders = $query->latest('date_of_purchase')->paginate(5); //عدد الصفوف  في جدول 
+        //$tenders = $query->latest('date_of_purchase')->paginate(5); //عدد الصفوف  في جدول 
+        $tenders = $query->orderBy($this->sortBy, $this->sortDir)->paginate(5);
         $uniqueClients = Tender::select('client_type')->whereNotNull('client_type')->distinct()->pluck('client_type');
         $uniqueAssignees = Tender::select('assigned_to')->whereNotNull('assigned_to')->distinct()->pluck('assigned_to');
+
+        $uniqueQuarters = Tender::whereNotNull('date_of_submission')
+            ->select(\Illuminate\Support\Facades\DB::raw("CONCAT('Q', QUARTER(date_of_submission), ', ', YEAR(date_of_submission)) as quarter_year"))
+            ->distinct()
+            ->orderBy('quarter_year', 'desc')
+            ->pluck('quarter_year');
 
         return view('livewire.e-tender.e-tender', [
             'tenders' => $tenders,

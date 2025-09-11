@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Models\OtherTenderPlatform\FocalPointO; 
+use App\Models\OtherTenderPlatform\FocalPointO;
 
 class OtherTender extends Model
 {
@@ -42,10 +42,25 @@ class OtherTender extends Model
         'has_third_party' => 'boolean',
     ];
 
+    // protected function quarter(): Attribute
+    // {
+    //     return Attribute::make(
+    //         get: fn () => 'Q' . ceil($this->date_of_submission->month / 3),
+    //     );
+    // }
+
     protected function quarter(): Attribute
     {
         return Attribute::make(
-            get: fn () => 'Q' . ceil($this->date_of_submission->month / 3),
+            get: function () {
+
+                if (!$this->date_of_submission) {
+                    return null;
+                }
+                $date = \Carbon\Carbon::parse($this->date_of_submission);
+
+                return "Q" . $date->quarter . ", " . $date->year;
+            }
         );
     }
 

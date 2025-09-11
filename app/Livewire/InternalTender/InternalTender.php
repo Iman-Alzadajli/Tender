@@ -37,7 +37,7 @@ class InternalTender extends Component
     public string $name = '';
     public string $number = '';
     public string $client_type = '';
-    public ? string $client_name = '';
+    public ?string $client_name = '';
     public string $date_of_purchase = '';
     public string $assigned_to = '';
     public string $date_of_submission = '';
@@ -55,6 +55,10 @@ class InternalTender extends Component
     public string $quarter = '';
     public array $focalPoints = []; // for focalpoint (Person) 
     public $users = []; // for assigned to (user)
+
+
+    public string $sortBy = 'date_of_submission';
+    public string $sortDir = 'DESC';
 
     //اظهار اسماء يوسر في اساين تو 
 
@@ -152,6 +156,19 @@ class InternalTender extends Component
 
         $this->showModal = true;
     }
+
+
+    //ترتيب
+    public function setSortBy($sortByField)
+    {
+        if ($this->sortBy === $sortByField) {
+            $this->sortDir = ($this->sortDir === "ASC") ? 'DESC' : "ASC";
+            return;
+        }
+        $this->sortBy = $sortByField;
+        $this->sortDir = 'DESC';
+    }
+
 
     // لما تكون فاضية و قيم الافتراضية 
 
@@ -361,7 +378,7 @@ class InternalTender extends Component
             $query->where('client_type', 'like', "%{$this->clientFilter}%");
         }
 
-        $tenders = $query->latest('date_of_purchase')->paginate(5); //عدد الصفوف  في جدول 
+        $tenders = $query->orderBy($this->sortBy, $this->sortDir)->paginate(5);
         $uniqueClients = Tender::select('client_type')->whereNotNull('client_type')->distinct()->pluck('client_type');
         $uniqueAssignees = Tender::select('assigned_to')->whereNotNull('assigned_to')->distinct()->pluck('assigned_to');
 

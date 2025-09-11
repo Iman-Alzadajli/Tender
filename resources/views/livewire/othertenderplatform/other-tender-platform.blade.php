@@ -94,18 +94,56 @@
     <div class="card shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle" id="tenderTable">
+
                 <thead class="table-light">
                     <tr>
-                        <th>Tender Name</th>
-                        <th>Client Type</th>
-                        <th>Client Name</th>
-                        <th>Assigned To</th>
-                        <th>Submission Date</th>
+                        {{-- ▼▼▼ هذا هو الكود الجديد بالكامل ▼▼▼ --}}
+                        <th wire:click="setSortBy('name')" style="cursor: pointer;">
+                            E-Tender Name
+                            @if($sortBy === 'name')
+                            <i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>
+                            @endif
+                        </th>
+                        <th wire:click="setSortBy('client_type')" style="cursor: pointer;">
+                            Client Type
+                            @if($sortBy === 'client_type')
+                            <i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>
+                            @endif
+                        </th>
+                        <th wire:click="setSortBy('client_name')" style="cursor: pointer;">
+                            Client Name
+                            @if($sortBy === 'client_name')
+                            <i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>
+                            @endif
+                        </th>
+                        <th wire:click="setSortBy('assigned_to')" style="cursor: pointer;">
+                            Assigned To
+                            @if($sortBy === 'assigned_to')
+                            <i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>
+                            @endif
+                        </th>
+                        <th wire:click="setSortBy('date_of_submission')" style="cursor: pointer;">
+                            Submission Date
+                            @if($sortBy === 'date_of_submission')
+                            <i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>
+                            @endif
+                        </th>
+
+                        {{-- بالنسبة لـ Quarter، لا يمكن فرزه مباشرة لأنه عمود افتراضي. سنتركه بدون فرز حاليًا --}}
                         <th>Quarter</th>
-                        <th>Status</th>
+
+                        <th wire:click="setSortBy('status')" style="cursor: pointer;">
+                            Status
+                            @if($sortBy === 'status')
+                            <i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>
+                            @endif
+                        </th>
                         <th>Actions</th>
+                        {{-- ▲▲▲ نهاية الكود الجديد ▲▲▲ --}}
                     </tr>
                 </thead>
+
+                
                 <tbody>
                     @forelse ($tenders as $tender)
                     <tr>
