@@ -55,7 +55,7 @@ class OtherTenderPlatform extends Component
     public string $quarter = '';
     public array $focalPoints = []; // for focalpoint (Person) 
     public $users = []; // for assigned to (user)
-    
+
 
 
     public string $sortBy = 'date_of_submission';
@@ -303,7 +303,7 @@ class OtherTenderPlatform extends Component
         $tendersToExport = $query->latest('date_of_purchase')->get();
 
         // إنشاء ملـف PDF وتمرير البيانات إليه
-        $pdf = Pdf::loadView('livewire.othertenderplatform.otender-pdf', [
+        $pdf = Pdf::loadView('livewire.exportfiles.export-pdf', [
             'tenders' => $tendersToExport
         ]);
 
@@ -317,7 +317,7 @@ class OtherTenderPlatform extends Component
 
     public function exportSimpleExcel()
     {
-       
+
         // نحدد كل الأعمدة التي نريدها في ملف Excel
         $columnsToExport = [
             'id',
@@ -348,13 +348,13 @@ class OtherTenderPlatform extends Component
             ->when($this->clientFilter, fn($q) => $q->where('client_type', 'like', "%{$this->clientFilter}%"));
 
         //  نجلب البيانات مع العلاقات (Focal Points) ونحدد الأعمدة
-        $tendersToExport = $query->with('focalPoints') 
+        $tendersToExport = $query->with('focalPoints')
             ->select($columnsToExport) //
             ->orderBy($this->sortBy, $this->sortDir)
             ->get();
 
         //  نعرض البيانات في ملف Blade
-        $view = view('livewire.othertenderplatform.ExcelOther', [
+        $view = view('livewire.exportfiles.Export-excel', [
             'tenders' => $tendersToExport
         ])->render();
 

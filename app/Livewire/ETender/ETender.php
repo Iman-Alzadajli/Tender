@@ -292,7 +292,7 @@ class ETender extends Component
 
         $tendersToExport = $query->latest('date_of_purchase')->get();
 
-        $pdf = Pdf::loadView('livewire.e-tender.etender-pdf', [
+        $pdf = Pdf::loadView('livewire.exportfiles.export-pdf', [
             'tenders' => $tendersToExport
         ]);
 
@@ -343,7 +343,7 @@ class ETender extends Component
             ->get();
 
         //  نعرض البيانات في ملف Blade
-        $view = view('livewire.othertenderplatform.ExcelOther', [
+        $view = view('livewire.exportfiles.Export-excel', [
             'tenders' => $tendersToExport
         ])->render();
 

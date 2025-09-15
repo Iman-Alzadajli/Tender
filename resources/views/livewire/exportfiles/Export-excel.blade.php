@@ -3,15 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Tenders Export</title>
-    <style>
-        /* Optional: Basic styling for the table */
-        body { font-family: sans-serif; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #dddddd; text-align: left; padding: 8px; }
-        thead tr { background-color: #f2f2f2; }
-        .section-header { background-color: #e9ecef; font-weight: bold; text-align: center; }
-        .focal-point-header { background-color: #d1e7dd; font-weight: bold; }
-    </style>
+    <link rel="stylesheet" href="{{ asset('/css/excel.css') }}">
+
+
 </head>
 <body>
     <table>
