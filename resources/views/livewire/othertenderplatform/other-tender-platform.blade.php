@@ -62,14 +62,23 @@
 
             @if ($showFilters)
             <div class="row g-3 mt-2 pt-3">
-                <div class="col-sm-6 col-md-3"><select wire:model.live="quarterFilter" class="form-select">
+                <div class="col-6 col-md-2"><select wire:model.live="quarterFilter" class="form-select">
                         <option value="">All Quarters</option>
                         <option value="Q1">Q1</option>
                         <option value="Q2">Q2</option>
                         <option value="Q3">Q3</option>
                         <option value="Q4">Q4</option>
                     </select></div>
-                <div class="col-sm-6 col-md-3"><select wire:model.live="statusFilter" class="form-select">
+                <div class="col-6 col-md-2">
+                    <select wire:model.live="yearFilter" class="form-select">
+                        <option value="">All Years</option>
+                        @foreach ($uniqueYears as $year)
+                        <option value="{{ $year }}">{{ $year }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-6 col-md-2"><select wire:model.live="statusFilter" class="form-select">
                         <option value="">All Statuses</option>
                         <option value="Recall">Recall</option>
                         <option value="BuildProposal">Build Proposal</option>
@@ -78,10 +87,10 @@
                         <option value="Awarded to Others (loss)">Awarded to Others (loss)</option>
                         <option value="Cancel">Cancel</option>
                     </select></div>
-                <div class="col-sm-6 col-md-3"><select wire:model.live="assignedFilter" class="form-select">
+                <div class="col-6 col-md-3"><select wire:model.live="assignedFilter" class="form-select">
                         <option value="">All Assignees</option>@foreach ($uniqueAssignees as $assignee)<option value="{{ $assignee }}">{{ $assignee }}</option>@endforeach
                     </select></div>
-                <div class="col-sm-6 col-md-3"><select wire:model.live="clientFilter" class="form-select">
+                <div class="col-6 col-md-3"><select wire:model.live="clientFilter" class="form-select">
                         <option value="">All Client Types</option>@foreach ($uniqueClients as $client)<option value="{{ $client }}">{{ $client }}</option>@endforeach
                     </select></div>
             </div>
@@ -97,7 +106,7 @@
 
                 <thead class="table-light">
                     <tr>
-                     
+
                         <th wire:click="setSortBy('name')" style="cursor: pointer;">
                             Tender Name
                             @if($sortBy === 'name')
@@ -139,7 +148,7 @@
                             @endif
                         </th>
                         <th>Actions</th>
-                       
+
                     </tr>
                 </thead>
 
@@ -260,11 +269,11 @@
                                     <label class="form-label">Assigned To <span class="text-danger">*</span></label>
                                     <select wire:model="assigned_to" class="form-select @error('assigned_to') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
                                         <option value="">Select Person</option>
-                                   
+
                                         @foreach ($users as $user)
                                         <option value="{{ $user->name }}">{{ $user->name }}</option>
                                         @endforeach
-                             
+
                                     </select>
                                     @error('assigned_to')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
@@ -281,39 +290,52 @@
                                     @error('date_of_purchase')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
-                                {{-- 2. Date of Submission --}}
+                                {{-- 2. Last Date of Clarification --}}
+                                <div class="mb-3">
+                                    <label class="form-label">Last Date of Clarification <span class="text-danger">*</span></label>
+                                    <input type="date" wire:model="last_date_of_clarification" class="form-control @error('last_date_of_clarification') is-invalid @enderror" onfocus="this.showPicker()" @if($mode=='view' ) readonly @endif>
+                                    @error('last_date_of_clarification')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                {{-- 3. Date of Submission after Review --}}
+                                <div class="mb-3">
+                                    <label class="form-label">Date of Submission after Review <span class="text-danger">*</span></label>
+                                    <input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" onfocus="this.showPicker()" @if($mode=='view' ) readonly @endif>
+                                    @error('date_of_submission_after_review')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                {{-- 4. Date of Submission --}}
                                 <div class="mb-3">
                                     <label class="form-label">Date of Submission <span class="text-danger">*</span></label>
                                     <input type="date" wire:model="date_of_submission" class="form-control @error('date_of_submission') is-invalid @enderror" onfocus="this.showPicker()" @if($mode=='view' ) readonly @endif>
                                     @error('date_of_submission')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
-                                {{-- 3. Reviewed by --}}
-                                <div class="mb-3">
+                                {{-- 5. Reviewed by --}}
+                                <div>
                                     <label class="form-label">Reviewed by <span class="text-danger">*</span></label>
                                     <select wire:model="reviewed_by" class="form-select @error('reviewed_by') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
                                         <option value="">Select Person</option>
-                                    
                                         @foreach ($users as $user)
                                         <option value="{{ $user->name }}">{{ $user->name }}</option>
                                         @endforeach
                                     </select>
                                     @error('reviewed_by')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
+                            </div>
 
-                                {{-- 4. Date of Submission of BA --}}
-                                <div class="mb-3">
-                                    <label class="form-label">Date of Submission of Business analysis <span class="text-danger">*</span></label>
-                                    <input type="date" wire:model="date_of_submission_ba" class="form-control @error('date_of_submission_ba') is-invalid @enderror" onfocus="this.showPicker()" @if($mode=='view' ) readonly @endif>
-                                    @error('date_of_submission_ba')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                </div>
-
-                                {{-- 5. Date of Submission after Review --}}
-                                <div>
-                                    <label class="form-label">Date of Submission after Review <span class="text-danger">*</span></label>
-                                    <input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" onfocus="this.showPicker()" @if($mode=='view' ) readonly @endif>
-                                    @error('date_of_submission_after_review')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                </div>
+                            {{-- 6. Submission by --}}
+                            <div class="mb-3">
+                                <label class="form-label">Submission by <span class="text-danger">*</span></label>
+                                <select wire:model="submission_by" class="form-select @error('submission_by') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
+                                    <option value="">Select Person</option>
+                                    @foreach($users as $user)
+                                    <option value="{{ $user->name }}">{{ $user->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('submission_by')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
 

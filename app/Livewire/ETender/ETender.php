@@ -23,6 +23,7 @@ class ETender extends Component
     // خصائص الواجهة الرئيسية
     public string $search = '';
     public string $quarterFilter = '';
+    public string $yearFilter = '';
     public string $statusFilter = '';
     public string $assignedFilter = '';
     public string $clientFilter = '';
@@ -42,7 +43,8 @@ class ETender extends Component
     public string $assigned_to = '';
     public string $date_of_submission = '';
     public string $reviewed_by = '';
-    public string $date_of_submission_ba = '';
+    public string $last_date_of_clarification = '';
+    public string $submission_by = '';
 
 
     public string $date_of_submission_after_review = '';
@@ -79,7 +81,8 @@ class ETender extends Component
             'assigned_to' => 'required|string|max:255',
             'date_of_submission' => 'required|date',
             'reviewed_by' => 'required|string|max:255',
-            'date_of_submission_ba' => 'required|date',
+            'last_date_of_clarification' => 'required|date',
+            'submission_by' => 'required|string|max:255',
             'date_of_submission_after_review' => 'required|date',
             'has_third_party' => 'required|boolean',
             'last_follow_up_date' => 'required|date',
@@ -170,7 +173,8 @@ class ETender extends Component
             'assigned_to',
             'date_of_submission',
             'reviewed_by',
-            'date_of_submission_ba',
+            'last_date_of_clarification', 
+            'submission_by', 
             'date_of_submission_after_review',
             'has_third_party',
             'last_follow_up_date',
@@ -198,7 +202,8 @@ class ETender extends Component
         $this->assigned_to = $tender->assigned_to;
         $this->date_of_submission = $tender->date_of_submission?->format('Y-m-d');
         $this->reviewed_by = $tender->reviewed_by;
-        $this->date_of_submission_ba = $tender->date_of_submission_ba?->format('Y-m-d');
+        $this->last_date_of_clarification = $tender->last_date_of_clarification?->format('Y-m-d');
+        $this->submission_by = $tender->submission_by;
         $this->date_of_submission_after_review = $tender->date_of_submission_after_review?->format('Y-m-d');
         $this->has_third_party = $tender->has_third_party;
         $this->last_follow_up_date = $tender->last_follow_up_date?->format('Y-m-d');
@@ -234,7 +239,8 @@ class ETender extends Component
 
         $dateFields = [
             'date_of_purchase',
-            'date_of_submission_ba',
+            'date_of_submission',
+            'last_date_of_clarification',
             'date_of_submission_after_review',
             'last_follow_up_date',
         ];
@@ -274,7 +280,7 @@ class ETender extends Component
 
     public function updating($property): void
     {
-        if (in_array($property, ['search', 'quarterFilter', 'statusFilter', 'assignedFilter', 'clientFilter'])) {
+        if (in_array($property, ["search", "quarterFilter", "yearFilter", "statusFilter", "assignedFilter", "clientFilter"])) {
             $this->resetPage();
         }
     }
@@ -283,25 +289,28 @@ class ETender extends Component
 
     public function exportPdf()
     {
+        // 
         $query = Tender::query()
             ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('client_type', 'like', "%{$this->search}%"))
             ->when($this->quarterFilter, fn($q) => $q->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]))
+            ->when($this->yearFilter, fn($q) => $q->whereYear('date_of_submission', $this->yearFilter))
             ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter))
             ->when($this->assignedFilter, fn($q) => $q->where('assigned_to', $this->assignedFilter))
             ->when($this->clientFilter, fn($q) => $q->where('client_type', 'like', "%{$this->clientFilter}%"));
 
+        // كل بيانات بدون ترقيم 
         $tendersToExport = $query->latest('date_of_purchase')->get();
 
+        // يساعدنا انشاء ملف بي اد اف 
         $pdf = Pdf::loadView('livewire.exportfiles.export-pdf', [
             'tenders' => $tendersToExport
         ]);
 
-
+        //  قابل للتحميل 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         }, 'Tenders-Report-' . now()->format('Y-m-d') . '.pdf');
     }
-
     //excel 
 
     public function exportSimpleExcel()
@@ -318,7 +327,8 @@ class ETender extends Component
             'date_of_purchase',
             'date_of_submission',
             'reviewed_by',
-            'date_of_submission_ba',
+            'last_date_of_clarification',
+            'submission_by',
             'date_of_submission_after_review',
             'has_third_party',
             'last_follow_up_date',
@@ -414,6 +424,12 @@ class ETender extends Component
         //             ->whereYear('date_of_submission', $parts[1]);
         //     });
         // }
+
+
+
+        if ($this->quarterFilter) {
+            $query->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]);
+        }
         if ($this->statusFilter) {
             $query->where('status', $this->statusFilter);
         }
@@ -421,24 +437,26 @@ class ETender extends Component
             $query->where('assigned_to', $this->assignedFilter);
         }
         if ($this->clientFilter) {
-            $query->where('client_type', 'like', "%{$this->clientFilter}%");
+            $query->where("client_type", "like", "%{$this->clientFilter}%");
         }
 
-        //$tenders = $query->latest('date_of_purchase')->paginate(5); //عدد الصفوف  في جدول 
+        if ($this->yearFilter) {
+            $query->whereYear("date_of_submission", $this->yearFilter);
+        }
+
         $tenders = $query->orderBy($this->sortBy, $this->sortDir)->paginate(5);
-        $uniqueClients = Tender::select('client_type')->whereNotNull('client_type')->distinct()->pluck('client_type');
-        $uniqueAssignees = Tender::select('assigned_to')->whereNotNull('assigned_to')->distinct()->pluck('assigned_to');
-
-        $uniqueQuarters = Tender::whereNotNull('date_of_submission')
-            ->select(\Illuminate\Support\Facades\DB::raw("CONCAT('Q', QUARTER(date_of_submission), ', ', YEAR(date_of_submission)) as quarter_year"))
+        $uniqueClients = Tender::select("client_type")->whereNotNull("client_type")->distinct()->pluck("client_type");
+        $uniqueAssignees = Tender::select("assigned_to")->whereNotNull("assigned_to")->distinct()->pluck("assigned_to");
+        $uniqueYears = Tender::selectRaw('YEAR(date_of_submission) as year')
             ->distinct()
-            ->orderBy('quarter_year', 'desc')
-            ->pluck('quarter_year');
+            ->orderBy('year', 'desc')
+            ->pluck('year');
 
-        return view('livewire.e-tender.e-tender', [
-            'tenders' => $tenders,
-            'uniqueClients' => $uniqueClients,
-            'uniqueAssignees' => $uniqueAssignees,
+        return view("livewire.e-tender.e-tender", [
+            "tenders" => $tenders,
+            "uniqueClients" => $uniqueClients,
+            "uniqueAssignees" => $uniqueAssignees,
+            "uniqueYears" => $uniqueYears,
         ]);
     }
 }
