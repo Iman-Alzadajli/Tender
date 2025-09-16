@@ -71,7 +71,8 @@ class Dashboard extends Component
             'focalPoints' => 'sometimes|array',
             'focalPoints.*.name' => 'required|string|max:255',
             // 'focalPoints.*.phone' => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
-            'focalPoints.*.phone' => ['required', 'numeric', 'digits_between:8,25'],
+            // 'focalPoints.*.phone' => ['required', 'numeric', 'digits_between:8,25'],
+            'focalPoints.*.phone' => ['required','regex:/^(?:[9720+])[0-9]{7,12}$/'],
             'focalPoints.*.email' => 'required|email|max:255',
             'focalPoints.*.department' => 'required|string|max:255',
         ];

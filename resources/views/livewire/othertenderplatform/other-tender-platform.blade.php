@@ -99,7 +99,7 @@
                     <tr>
                      
                         <th wire:click="setSortBy('name')" style="cursor: pointer;">
-                            E-Tender Name
+                            Tender Name
                             @if($sortBy === 'name')
                             <i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>
                             @endif
@@ -223,7 +223,7 @@
                             <div class="col-md-6">
                                 {{-- 1. E-Tender Name --}}
                                 <div class="mb-3">
-                                    <label class="form-label">E-Tender Name <span class="text-danger">*</span></label>
+                                    <label class="form-label">Tender Name <span class="text-danger">*</span></label>
                                     <input type="text" wire:model="name" class="form-control @error('name') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
                                     @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
@@ -277,14 +277,14 @@
                                 {{-- 1. Date of Purchase --}}
                                 <div class="mb-3">
                                     <label class="form-label">Date of Purchase <span class="text-danger">*</span></label>
-                                    <input type="date" wire:model="date_of_purchase" class="form-control @error('date_of_purchase') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
+                                    <input type="date" wire:model="date_of_purchase" class="form-control @error('date_of_purchase') is-invalid @enderror" onfocus="this.showPicker()" @if($mode=='view' ) readonly @endif>
                                     @error('date_of_purchase')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 {{-- 2. Date of Submission --}}
                                 <div class="mb-3">
                                     <label class="form-label">Date of Submission <span class="text-danger">*</span></label>
-                                    <input type="date" wire:model="date_of_submission" class="form-control @error('date_of_submission') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
+                                    <input type="date" wire:model="date_of_submission" class="form-control @error('date_of_submission') is-invalid @enderror" onfocus="this.showPicker()" @if($mode=='view' ) readonly @endif>
                                     @error('date_of_submission')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
@@ -304,14 +304,14 @@
                                 {{-- 4. Date of Submission of BA --}}
                                 <div class="mb-3">
                                     <label class="form-label">Date of Submission of Business analysis <span class="text-danger">*</span></label>
-                                    <input type="date" wire:model="date_of_submission_ba" class="form-control @error('date_of_submission_ba') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
+                                    <input type="date" wire:model="date_of_submission_ba" class="form-control @error('date_of_submission_ba') is-invalid @enderror" onfocus="this.showPicker()" @if($mode=='view' ) readonly @endif>
                                     @error('date_of_submission_ba')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 {{-- 5. Date of Submission after Review --}}
                                 <div>
                                     <label class="form-label">Date of Submission after Review <span class="text-danger">*</span></label>
-                                    <input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
+                                    <input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" onfocus="this.showPicker()" @if($mode=='view' ) readonly @endif>
                                     @error('date_of_submission_after_review')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
                             </div>
@@ -413,7 +413,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Last date of Follow-up <span class="text-danger">*</span></label>
-                                <input type="date" wire:model="last_follow_up_date" class="form-control @error('last_follow_up_date') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
+                                <input type="date" wire:model="last_follow_up_date" class="form-control @error('last_follow_up_date') is-invalid @enderror" onfocus="this.showPicker()" @if($mode=='view' ) readonly @endif>
                                 @error('last_follow_up_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-md-4">

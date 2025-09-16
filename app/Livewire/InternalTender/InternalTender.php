@@ -89,7 +89,7 @@ class InternalTender extends Component
             'reason_of_cancel' => Rule::requiredIf($this->status === 'Cancel'),
             'focalPoints' => 'required|array|min:1',
             'focalPoints.*.name' => 'required|string|max:255',
-            'focalPoints.*.phone' => ['required', 'numeric', 'digits_between:8,25'],
+            'focalPoints.*.phone' => ['required', 'regex:/^(?:[9720+])[0-9]{7,12}$/'],
             'focalPoints.*.email' => 'required|email|max:255',
             'focalPoints.*.department' => 'required|string|max:255',
             'focalPoints.*.other_info' => 'nullable|string',

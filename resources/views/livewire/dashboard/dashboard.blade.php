@@ -291,28 +291,28 @@
                                 {{-- 2. Date of Purchase --}}
                                 <div class="mb-3">
                                     <label class="form-label">Date of Purchase <span class="text-danger">*</span></label>
-                                    <input type="date" wire:model="date_of_purchase" class="form-control @error('date_of_purchase') is-invalid @enderror" @if(!$isEditMode) readonly @endif>
+                                    <input type="date" wire:model="date_of_purchase" class="form-control @error('date_of_purchase') is-invalid @enderror" onfocus="this.showPicker()" @if(!$isEditMode) readonly @endif>
                                     @error('date_of_purchase')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 {{-- 3. Date of Submission --}}
                                 <div class="mb-3">
                                     <label class="form-label">Date of Submission <span class="text-danger">*</span></label>
-                                    <input type="date" wire:model="date_of_submission" class="form-control @error('date_of_submission') is-invalid @enderror" @if(!$isEditMode) readonly @endif>
+                                    <input type="date" wire:model="date_of_submission" class="form-control @error('date_of_submission') is-invalid @enderror" onfocus="this.showPicker()" @if(!$isEditMode) readonly @endif>
                                     @error('date_of_submission')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 {{-- 4. Date of Submission of BA --}}
                                 <div class="mb-3">
                                     <label class="form-label">Date of Submission of BA <span class="text-danger">*</span></label>
-                                    <input type="date" wire:model="date_of_submission_ba" class="form-control @error('date_of_submission_ba') is-invalid @enderror" @if(!$isEditMode) readonly @endif>
+                                    <input type="date" wire:model="date_of_submission_ba" class="form-control @error('date_of_submission_ba') is-invalid @enderror" onfocus="this.showPicker()" @if(!$isEditMode) readonly @endif>
                                     @error('date_of_submission_ba')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 {{-- 5. Date of Submission after Review --}}
                                 <div>
                                     <label class="form-label">Date of Submission after Review <span class="text-danger">*</span></label>
-                                    <input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" @if(!$isEditMode) readonly @endif>
+                                    <input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" onfocus="this.showPicker()" @if(!$isEditMode) readonly @endif>
                                     @error('date_of_submission_after_review')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
                             </div>
@@ -370,7 +370,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Last date of Follow-up <span class="text-danger">*</span></label>
-                                <input type="date" wire:model="last_follow_up_date" class="form-control @error('last_follow_up_date') is-invalid @enderror" @if(!$isEditMode) readonly @endif>
+                                <input type="date" wire:model="last_follow_up_date" class="form-control @error('last_follow_up_date') is-invalid @enderror" onfocus="this.showPicker()" @if(!$isEditMode) readonly @endif>
                                 @error('last_follow_up_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-md-4">
