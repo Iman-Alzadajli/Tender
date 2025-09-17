@@ -23,7 +23,8 @@ class InternalTender extends Model
         'date_of_purchase',
         'date_of_submission',
         'reviewed_by',
-        'date_of_submission_ba',
+        'last_date_of_clarification', 
+        'submission_by',
         'date_of_submission_after_review',
         'has_third_party',
         'last_follow_up_date',
@@ -39,7 +40,7 @@ class InternalTender extends Model
     protected $casts = [
         'date_of_purchase' => 'date',
         'date_of_submission' => 'date',
-        'date_of_submission_ba' => 'date',
+        'last_date_of_clarification' => 'date',
         'date_of_submission_after_review' => 'date',
         'last_follow_up_date' => 'date',
         'has_third_party' => 'boolean',
@@ -60,12 +61,12 @@ class InternalTender extends Model
     {
         return Attribute::make(
             get: function () {
-             
+
                 if (!$this->date_of_submission) {
                     return null;
                 }
                 $date = \Carbon\Carbon::parse($this->date_of_submission);
-             
+
                 return "Q" . $date->quarter . ", " . $date->year;
             }
         );

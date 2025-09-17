@@ -188,7 +188,6 @@ class InternalTender extends Component
             'reviewed_by',
             'last_date_of_clarification', // تم التغيير
             'submission_by', // تم الإضافة
-            // 'date_of_submission_ba',
             'date_of_submission_after_review',
             'has_third_party',
             'last_follow_up_date',

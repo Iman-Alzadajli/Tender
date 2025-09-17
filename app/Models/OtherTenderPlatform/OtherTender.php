@@ -23,7 +23,8 @@ class OtherTender extends Model
         'date_of_purchase',
         'date_of_submission',
         'reviewed_by',
-        'date_of_submission_ba',
+        'last_date_of_clarification', 
+        'submission_by',
         'date_of_submission_after_review',
         'has_third_party',
         'last_follow_up_date',
@@ -36,11 +37,11 @@ class OtherTender extends Model
     protected $casts = [
         'date_of_purchase' => 'date',
         'date_of_submission' => 'date',
-        'date_of_submission_ba' => 'date',
+        'last_date_of_clarification' => 'date',
         'date_of_submission_after_review' => 'date',
         'last_follow_up_date' => 'date',
         'has_third_party' => 'boolean',
-        
+
     ];
 
     // protected function quarter(): Attribute

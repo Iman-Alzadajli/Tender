@@ -33,7 +33,8 @@ class Dashboard extends Component
     public string $assigned_to = '';
     public string $date_of_submission = '';
     public string $reviewed_by = '';
-    public string $date_of_submission_ba = '';
+    public string $last_date_of_clarification = '';
+    public string $submission_by = '';
     public string $date_of_submission_after_review = '';
     public bool $has_third_party = false;
     public string $last_follow_up_date = '';
@@ -60,7 +61,8 @@ class Dashboard extends Component
             'assigned_to' => 'required|string|max:255',
             'date_of_submission' => 'required|date',
             'reviewed_by' => 'required|string|max:255',
-            'date_of_submission_ba' => 'required|date',
+            'last_date_of_clarification' => 'required|date',
+            'submission_by' => 'required|string|max:255',
             'date_of_submission_after_review' => 'required|date',
             'has_third_party' => 'required|boolean',
             'last_follow_up_date' => 'required|date',
@@ -108,7 +110,8 @@ class Dashboard extends Component
                 'assigned_to' => $tender->assigned_to,
                 'date_of_submission' => $tender->date_of_submission?->format('Y-m-d'),
                 'reviewed_by' => $tender->reviewed_by,
-                'date_of_submission_ba' => $tender->date_of_submission_ba?->format('Y-m-d'),
+                'last_date_of_clarification' => $tender->last_date_of_clarification?->format('Y-m-d'),
+                'submission_by' => $tender->submission_by,
                 'date_of_submission_after_review' => $tender->date_of_submission_after_review?->format('Y-m-d'),
                 'has_third_party' => $tender->has_third_party,
                 'last_follow_up_date' => $tender->last_follow_up_date?->format('Y-m-d'),

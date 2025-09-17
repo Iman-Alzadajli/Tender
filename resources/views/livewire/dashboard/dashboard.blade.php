@@ -155,7 +155,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                  
+
                                     <td colspan="5" class="text-center py-4">No urgent tenders found.</td>
                                 </tr>
                                 @endforelse
@@ -255,7 +255,7 @@
                                     <label class="form-label">Assigned To <span class="text-danger">*</span></label>
                                     <select wire:model="assigned_to" class="form-select @error('assigned_to') is-invalid @enderror" @if(!$isEditMode) disabled @endif>
                                         <option value="">-- Select Person --</option>
-                                    
+
                                         @foreach ($users as $user)
                                         <option value="{{ $user->name }}">{{ $user->name }}</option>
                                         @endforeach
@@ -268,7 +268,7 @@
                                     <label class="form-label">Reviewed by <span class="text-danger">*</span></label>
                                     <select wire:model="reviewed_by" class="form-select @error('reviewed_by') is-invalid @enderror" @if(!$isEditMode) disabled @endif>
                                         <option value="">-- Select Person --</option>
-                               
+
                                         @foreach ($users as $user)
                                         <option value="{{ $user->name }}">{{ $user->name }}</option>
                                         @endforeach
@@ -281,41 +281,64 @@
                             {{-- |                 العمود الأيمن (5 حقول)                | --}}
                             {{-- ======================================================= --}}
                             <div class="col-md-6">
-                                {{-- 1. Tender Number --}}
-                                <div class="mb-3">
-                                    <label class="form-label">Tender Number <span class="text-danger">*</span></label>
-                                    <input type="text" wire:model="number" class="form-control @error('number') is-invalid @enderror" @if(!$isEditMode) readonly @endif>
-                                    @error('number')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                </div>
-
-                                {{-- 2. Date of Purchase --}}
+                                {{-- 1. Date of Purchase --}}
                                 <div class="mb-3">
                                     <label class="form-label">Date of Purchase <span class="text-danger">*</span></label>
                                     <input type="date" wire:model="date_of_purchase" class="form-control @error('date_of_purchase') is-invalid @enderror" onfocus="this.showPicker()" @if(!$isEditMode) readonly @endif>
                                     @error('date_of_purchase')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
-                                {{-- 3. Date of Submission --}}
+                                {{-- 2. Last Date of Clarification --}}
+                                <div class="mb-3">
+                                    <label class="form-label">Last Date of Clarification <span class="text-danger">*</span></label>
+                                    <input type="date" wire:model="last_date_of_clarification" class="form-control @error('last_date_of_clarification') is-invalid @enderror" onfocus="this.showPicker()" @if(!$isEditMode) readonly @endif>
+                                    @error('last_date_of_clarification')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                {{-- 3. Date of Submission after Review --}}
+                                <div class="mb-3">
+                                    <label class="form-label">Date of Submission after Review <span class="text-danger">*</span></label>
+                                    <input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" onfocus="this.showPicker()" @if(!$isEditMode) readonly @endif>
+                                    @error('date_of_submission_after_review')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                {{-- 4. Date of Submission --}}
                                 <div class="mb-3">
                                     <label class="form-label">Date of Submission <span class="text-danger">*</span></label>
                                     <input type="date" wire:model="date_of_submission" class="form-control @error('date_of_submission') is-invalid @enderror" onfocus="this.showPicker()" @if(!$isEditMode) readonly @endif>
                                     @error('date_of_submission')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
-                                {{-- 4. Date of Submission of BA --}}
-                                <div class="mb-3">
-                                    <label class="form-label">Date of Submission of BA <span class="text-danger">*</span></label>
-                                    <input type="date" wire:model="date_of_submission_ba" class="form-control @error('date_of_submission_ba') is-invalid @enderror" onfocus="this.showPicker()" @if(!$isEditMode) readonly @endif>
-                                    @error('date_of_submission_ba')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                </div>
-
-                                {{-- 5. Date of Submission after Review --}}
+                                {{-- 5. Reviewed by --}}
                                 <div>
-                                    <label class="form-label">Date of Submission after Review <span class="text-danger">*</span></label>
-                                    <input type="date" wire:model="date_of_submission_after_review" class="form-control @error('date_of_submission_after_review') is-invalid @enderror" onfocus="this.showPicker()" @if(!$isEditMode) readonly @endif>
-                                    @error('date_of_submission_after_review')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <label class="form-label">Reviewed by <span class="text-danger">*</span></label>
+                                    <select wire:model="reviewed_by" class="form-select @error('reviewed_by') is-invalid @enderror" @if(!$isEditMode) disabled @endif>
+                                        <option value="">Select Person</option>
+                                        @foreach ($users as $user)
+                                        <option value="{{ $user->name }}">{{ $user->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('reviewed_by')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
                             </div>
+
+                            {{-- 6. Submission by --}}
+                            <div class="mb-3">
+                                <label class="form-label">Submission by <span class="text-danger">*</span></label>
+                                <select wire:model="submission_by" class="form-select @error('submission_by') is-invalid @enderror" @if(!$isEditMode) disabled @endif>
+                                    <option value="">Select Person</option>
+                                    @foreach($users as $user)
+                                    <option value="{{ $user->name }}">{{ $user->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('submission_by')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+
+
+
                         </div>
 
 
