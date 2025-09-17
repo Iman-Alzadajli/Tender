@@ -23,7 +23,7 @@ class OtherTender extends Model
         'date_of_purchase',
         'date_of_submission',
         'reviewed_by',
-        'last_date_of_clarification', 
+        'last_date_of_clarification',
         'submission_by',
         'date_of_submission_after_review',
         'has_third_party',
@@ -32,6 +32,11 @@ class OtherTender extends Model
         'follow_up_notes',
         'status',
         'reason_of_cancel',
+        'reason_of_cancel',
+        'submitted_price',  
+        'awarded_price', 
+        'reason_of_recall',
+
     ];
 
     protected $casts = [

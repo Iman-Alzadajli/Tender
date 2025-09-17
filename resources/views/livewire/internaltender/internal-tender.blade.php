@@ -460,6 +460,36 @@
                                 @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
 
+                            {{-- ✅ الحقول الديناميكية الجديدة --}}
+
+                            {{-- 1. حقل حالة "Recall" --}}
+                            @if($status === 'Recall')
+                            <div class="col-md-6">
+                                <label class="form-label">Reason of Recall <span class="text-danger">*</span></label>
+                                <textarea wire:model="reason_of_recall" class="form-control @error('reason_of_recall') is-invalid @enderror" rows="1" @if($mode=='view' ) readonly @endif></textarea>
+                                @error('reason_of_recall')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            @endif
+
+                            {{-- 2. حقل حالة "Under Evaluation" --}}
+                            @if($status === 'Under Evaluation')
+                            <div class="col-md-6">
+                                <label class="form-label">Submitted Price <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" wire:model="submitted_price" class="form-control @error('submitted_price') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
+                                @error('submitted_price')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            @endif
+
+                            {{-- 3. حقل حالة "Awarded to Others (loss)" --}}
+                            @if($status === 'Awarded to Others (loss)')
+                            <div class="col-md-6">
+                                <label class="form-label">Awarded Price <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" wire:model="awarded_price" class="form-control @error('awarded_price') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
+                                @error('awarded_price')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            @endif
+
+                            {{-- 4. حقل حالة "Cancel" (موجود مسبقاً) --}}
                             @if($status === 'Cancel')
                             <div class="col-md-6">
                                 <label class="form-label">Reason of Cancel <span class="text-danger">*</span></label>
@@ -467,6 +497,7 @@
                                 @error('reason_of_cancel')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             @endif
+
                         </div>
 
 

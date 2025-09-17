@@ -58,6 +58,11 @@ class InternalTender extends Component
     public array $focalPoints = []; // for focalpoint (Person) 
     public $users = []; // for assigned to (user)
 
+    // states 
+    public ?float $submitted_price = null;
+    public ?float $awarded_price = null;
+    public string $reason_of_recall = '';
+
 
     public string $sortBy = 'date_of_submission';
     public string $sortDir = 'DESC';
@@ -96,6 +101,12 @@ class InternalTender extends Component
             'focalPoints.*.email' => 'required|email|max:255',
             'focalPoints.*.department' => 'required|string|max:255',
             'focalPoints.*.other_info' => 'nullable|string',
+
+            'reason_of_cancel' => Rule::requiredIf($this->status === 'Cancel'),
+            'reason_of_recall' => Rule::requiredIf($this->status === 'Recall'),
+            'submitted_price' => ['nullable', 'numeric', Rule::requiredIf($this->status === 'Under Evaluation')],
+            'awarded_price' => ['nullable', 'numeric', Rule::requiredIf($this->status === 'Awarded to Others (loss)')],
+
             // 'focalPoints.*.phone' => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
             // 'focalPoints.*.email' => ['required', 'string', 'email', 'max:255'],
             // 'focalPoints.*.department' => 'required|string|max:255',
@@ -186,8 +197,8 @@ class InternalTender extends Component
             'assigned_to',
             'date_of_submission',
             'reviewed_by',
-            'last_date_of_clarification', // تم التغيير
-            'submission_by', // تم الإضافة
+            'last_date_of_clarification',
+            'submission_by',
             'date_of_submission_after_review',
             'has_third_party',
             'last_follow_up_date',
@@ -197,7 +208,12 @@ class InternalTender extends Component
             'reason_of_cancel',
             'quarter',
             'focalPoints',
-            'currentTender'
+            'currentTender',
+            'submitted_price',
+            'awarded_price',
+            'reason_of_recall',
+
+
         ]);
         $this->status = 'Recall';
         $this->has_third_party = false;
@@ -224,6 +240,10 @@ class InternalTender extends Component
         $this->follow_up_notes = $tender->follow_up_notes;
         $this->status = $tender->status;
         $this->reason_of_cancel = $tender->reason_of_cancel;
+        $this->submitted_price = $tender->submitted_price;
+        $this->awarded_price = $tender->awarded_price;
+        $this->reason_of_recall = $tender->reason_of_recall;
+
         $this->quarter = $tender->quarter;
         $this->focalPoints = $tender->focalPoints->toArray();
     }

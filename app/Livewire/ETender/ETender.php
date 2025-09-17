@@ -58,6 +58,11 @@ class ETender extends Component
     public array $focalPoints = []; // for focalpoint (Person) 
     public $users = []; // for assigned to (user)
 
+    // states 
+    public ?float $submitted_price = null;
+    public ?float $awarded_price = null;
+    public string $reason_of_recall = '';
+
 
     public string $sortBy = 'date_of_submission';
     public string $sortDir = 'DESC';
@@ -90,6 +95,9 @@ class ETender extends Component
             'follow_up_notes' => 'nullable|string',
             'status' => 'required|string|in:Recall,Awarded to Company (win),BuildProposal,Under Evaluation,Awarded to Others (loss),Cancel',
             'reason_of_cancel' => Rule::requiredIf($this->status === 'Cancel'),
+            'reason_of_recall' => Rule::requiredIf($this->status === 'Recall'),
+            'submitted_price' => ['nullable', 'numeric', Rule::requiredIf($this->status === 'Under Evaluation')],
+            'awarded_price' => ['nullable', 'numeric', Rule::requiredIf($this->status === 'Awarded to Others (loss)')],
             'focalPoints' => 'required|array|min:1',
             'focalPoints.*.name' => 'required|string|max:255',
             'focalPoints.*.phone' => ['required', 'regex:/^(?:[9720+])[0-9]{7,12}$/'],
@@ -173,8 +181,8 @@ class ETender extends Component
             'assigned_to',
             'date_of_submission',
             'reviewed_by',
-            'last_date_of_clarification', 
-            'submission_by', 
+            'last_date_of_clarification',
+            'submission_by',
             'date_of_submission_after_review',
             'has_third_party',
             'last_follow_up_date',

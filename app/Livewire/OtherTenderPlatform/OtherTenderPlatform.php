@@ -57,6 +57,11 @@ class OtherTenderPlatform extends Component
     public array $focalPoints = []; // for focalpoint (Person) 
     public $users = []; // for assigned to (user)
 
+    // states 
+    public ?float $submitted_price = null;
+    public ?float $awarded_price = null;
+    public string $reason_of_recall = '';
+
 
 
     public string $sortBy = 'date_of_submission';
@@ -90,6 +95,9 @@ class OtherTenderPlatform extends Component
             'follow_up_notes' => 'nullable|string',
             'status' => 'required|string|in:Recall,Cancel,Awarded to Others (loss),Awarded to Company (win),BuildProposal,Under Evaluation',
             'reason_of_cancel' => Rule::requiredIf($this->status === 'Cancel'),
+            'reason_of_recall' => Rule::requiredIf($this->status === 'Recall'),
+            'submitted_price' => ['nullable', 'numeric', Rule::requiredIf($this->status === 'Under Evaluation')],
+            'awarded_price' => ['nullable', 'numeric', Rule::requiredIf($this->status === 'Awarded to Others (loss)')],
             'focalPoints' => 'required|array|min:1',
             'focalPoints.*.name' => 'required|string|max:255',
             'focalPoints.*.phone' => ['required', 'regex:/^(?:[9720+])[0-9]{7,12}$/'],
