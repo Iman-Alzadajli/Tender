@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\TenderNote;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ETender extends Model
 {
@@ -77,5 +79,10 @@ class ETender extends Model
     public function focalPoints(): HasMany
     {
         return $this->hasMany(FocalPointE::class, 'e_tender_id');
+    }
+
+    public function notes(): MorphMany
+    {
+        return $this->morphMany(TenderNote::class, 'noteable');
     }
 }

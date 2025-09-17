@@ -6,18 +6,24 @@ use Livewire\Component;
 use App\Models\ETender\ETender;
 use App\Models\InternalTender\InternalTender;
 use App\Models\OtherTenderPlatform\OtherTender;
+use App\Models\TenderNote;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class Dashboard extends Component
 {
+    use AuthorizesRequests;
+
     // --- خصائص النافذة المنبثقة (Modal) والفورم ---
     public $showingTenderModal = false;
     public $isEditMode = false;
     public ?int $tenderId = null;
     public ?string $tenderModelClass = null;
+    public $currentTender;
     public $users;
 
     // --- خصائص الفورم الكاملة ---
@@ -39,12 +45,17 @@ class Dashboard extends Component
     public string $status = 'Recall';
     public array $focalPoints = [];
 
-
+    // خصائص الحالات الديناميكية
     public ?string $reason_of_cancel = '';
     public ?string $reason_of_recall = '';
     public ?float $submitted_price = null;
     public ?float $awarded_price = null;
 
+    // --- ✅ قسم الملاحظات ---
+    public $notes = [];
+    public string $newNoteContent = '';
+    public ?int $editingNoteId = null;
+    public string $editingNoteContent = '';
 
     public function mount()
     {
@@ -76,8 +87,6 @@ class Dashboard extends Component
             'focalPoints.*.phone' => ['required', 'regex:/^(?:[9720+])[0-9]{7,12}$/'],
             'focalPoints.*.email' => 'required|email|max:255',
             'focalPoints.*.department' => 'required|string|max:255',
-
-     
             'reason_of_cancel' => ['nullable', 'string', Rule::requiredIf($this->status === 'Cancel')],
             'reason_of_recall' => ['nullable', 'string', Rule::requiredIf($this->status === 'Recall')],
             'submitted_price' => ['nullable', 'numeric', 'min:0', Rule::requiredIf($this->status === 'Under Evaluation')],
@@ -85,7 +94,6 @@ class Dashboard extends Component
         ];
     }
 
-    // --- دوال التعامل مع النافذة المنبثقة (Modal) ---
     private function getModelClassForType($type)
     {
         return match ($type) {
@@ -99,61 +107,70 @@ class Dashboard extends Component
     public function showTender($type, $id, $editMode = false)
     {
         $this->resetValidation();
+        $this->resetForm();
         $this->tenderId = $id;
         $this->tenderModelClass = $this->getModelClassForType($type);
 
         if ($this->tenderModelClass) {
-            $tender = $this->tenderModelClass::with('focalPoints')->findOrFail($id);
-
-            // استخدام دالة fill لتعبئة جميع الخصائص مرة واحدة
-            $this->fill([
-                'name' => $tender->name,
-                'number' => $tender->number,
-                'client_type' => $tender->client_type,
-                'client_name' => $tender->client_name,
-                'date_of_purchase' => $tender->date_of_purchase?->format('Y-m-d'),
-                'assigned_to' => $tender->assigned_to,
-                'date_of_submission' => $tender->date_of_submission?->format('Y-m-d'),
-                'reviewed_by' => $tender->reviewed_by,
-                'last_date_of_clarification' => $tender->last_date_of_clarification?->format('Y-m-d'),
-                'submission_by' => $tender->submission_by,
-                'date_of_submission_after_review' => $tender->date_of_submission_after_review?->format('Y-m-d'),
-                'has_third_party' => $tender->has_third_party,
-                'last_follow_up_date' => $tender->last_follow_up_date?->format('Y-m-d'),
-                'follow_up_channel' => $tender->follow_up_channel,
-                'follow_up_notes' => $tender->follow_up_notes,
-                'status' => $tender->status,
-                'focalPoints' => $tender->focalPoints->toArray(),
-                'reason_of_cancel' => $tender->reason_of_cancel,
-                'reason_of_recall' => $tender->reason_of_recall,
-                'submitted_price' => $tender->submitted_price,
-                'awarded_price' => $tender->awarded_price,
-            ]);
+            $this->currentTender = $this->tenderModelClass::with('focalPoints', 'notes.user')->findOrFail($id);
+            $this->fillForm($this->currentTender);
+            $this->notes = $this->currentTender->notes;
         }
 
         $this->isEditMode = $editMode;
         $this->showingTenderModal = true;
     }
 
+    public function resetForm(): void
+    {
+        // ✅ نستثني users من عملية الريست
+        $this->resetExcept('users');
+    }
+
+    public function fillForm($tender): void
+    {
+        $this->fill($tender->only([
+            'name',
+            'number',
+            'client_type',
+            'client_name',
+            'assigned_to',
+            'reviewed_by',
+            'submission_by',
+            'has_third_party',
+            'follow_up_channel',
+            'follow_up_notes',
+            'status',
+            'reason_of_cancel',
+            'submitted_price',
+            'awarded_price',
+            'reason_of_recall'
+        ]));
+
+        $this->date_of_purchase = $tender->date_of_purchase?->format('Y-m-d');
+        $this->date_of_submission = $tender->date_of_submission?->format('Y-m-d');
+        $this->last_date_of_clarification = $tender->last_date_of_clarification?->format('Y-m-d');
+        $this->date_of_submission_after_review = $tender->date_of_submission_after_review?->format('Y-m-d');
+        $this->last_follow_up_date = $tender->last_follow_up_date?->format('Y-m-d');
+        $this->focalPoints = $tender->focalPoints->toArray();
+    }
+
     public function saveTender()
     {
         $validatedData = $this->validate();
 
-        if ($this->tenderModelClass && $this->tenderId) {
-            $tender = $this->tenderModelClass::find($this->tenderId);
-
-            // ---  التأكد من تفريغ الحقول غير المستخدمة قبل الحفظ ---
-            $tenderData = collect($validatedData)->except('focalPoints')->toArray();
+        if ($this->currentTender) {
+            $tenderData = collect($validatedData)->except(['focalPoints', 'notes'])->toArray();
             if ($this->status !== 'Cancel') $tenderData['reason_of_cancel'] = null;
             if ($this->status !== 'Recall') $tenderData['reason_of_recall'] = null;
             if ($this->status !== 'Under Evaluation') $tenderData['submitted_price'] = null;
             if ($this->status !== 'Awarded to Others (loss)') $tenderData['awarded_price'] = null;
 
-            $tender->update($tenderData);
+            $this->currentTender->update($tenderData);
 
-            $tender->focalPoints()->delete();
+            $this->currentTender->focalPoints()->delete();
             if (!empty($validatedData['focalPoints'])) {
-                $tender->focalPoints()->createMany($validatedData['focalPoints']);
+                $this->currentTender->focalPoints()->createMany($validatedData['focalPoints']);
             }
 
             $this->showingTenderModal = false;
@@ -190,40 +207,64 @@ class Dashboard extends Component
         }
     }
 
+    // --- ✅✅✅ دوال الملاحظات الجديدة ✅✅✅ ---
+    public function addNote()
+    {
+        $this->validate(['newNoteContent' => 'required|string']);
+        if ($this->currentTender) {
+            $this->currentTender->notes()->create(['user_id' => Auth::id(), 'content' => $this->newNoteContent]);
+            $this->newNoteContent = '';
+            $this->notes = $this->currentTender->notes()->with('user')->get();
+        }
+    }
+
+    public function editNote(int $noteId)
+    {
+        $note = TenderNote::findOrFail($noteId);
+        $this->authorize('update', $note);
+        $this->editingNoteId = $note->id;
+        $this->editingNoteContent = $note->content;
+    }
+
+    public function updateNote(int $noteId)
+    {
+        $note = TenderNote::findOrFail($noteId);
+        $this->authorize('update', $note);
+        $this->validate(['editingNoteContent' => 'required|string']);
+        $note->update(['content' => $this->editingNoteContent]);
+        $this->cancelEdit();
+        $this->notes = $this->currentTender->notes()->with('user')->get();
+    }
+
+    public function cancelEdit()
+    {
+        $this->editingNoteId = null;
+        $this->editingNoteContent = '';
+    }
+
+    public function deleteNote(int $noteId)
+    {
+        $note = TenderNote::findOrFail($noteId);
+        $this->authorize('delete', $note);
+        $note->delete();
+        $this->notes = $this->currentTender->notes()->with('user')->get();
+    }
+
     public function render()
     {
-        // جلب الأعمدة المطلوبة فقط لتقليل استهلاك الذاكرة
         $columns = ['id', 'name', 'status', 'date_of_submission', 'client_type', 'client_name', 'number', 'assigned_to'];
-
         $eTendersQuery = ETender::select(array_merge($columns, [DB::raw("'e_tender' as tender_type")]));
         $internalTendersQuery = InternalTender::select(array_merge($columns, [DB::raw("'internal_tender' as tender_type")]));
         $otherTendersQuery = OtherTender::select(array_merge($columns, [DB::raw("'other_tender' as tender_type")]));
-
-        $allTenders = $eTendersQuery->unionAll($internalTendersQuery)
-            ->unionAll($otherTendersQuery)
-            ->get();
-
+        $allTenders = $eTendersQuery->unionAll($internalTendersQuery)->unionAll($otherTendersQuery)->get();
         $activeStatuses = ['Recall', 'Under Evaluation', 'Awarded to Company (win)', 'BuildProposal'];
         $urgentTenders = $allTenders->whereIn('status', $activeStatuses)
             ->whereNotNull('date_of_submission')
             ->filter(fn($t) => Carbon::parse($t->date_of_submission)->between(Carbon::today(), Carbon::today()->addDays(3)))
             ->sortBy('date_of_submission');
-
-        $statusCounts = $allTenders->countBy(function ($tender) {
-            return str_replace([' ', '(', ')'], ['_', '', ''], strtolower($tender->status));
-        });
-
-        $tendersByQuarter = $allTenders->whereNotNull('date_of_submission')
-            ->groupBy(fn($t) => "Q" . Carbon::parse($t->date_of_submission)->quarter)
-            ->map->count();
-
-        $tenderQuantities = [
-            'Q1' => $tendersByQuarter->get('Q1', 0),
-            'Q2' => $tendersByQuarter->get('Q2', 0),
-            'Q3' => $tendersByQuarter->get('Q3', 0),
-            'Q4' => $tendersByQuarter->get('Q4', 0)
-        ];
-
+        $statusCounts = $allTenders->countBy(fn($tender) => str_replace([' ', '(', ')'], ['_', '', ''], strtolower($tender->status)));
+        $tendersByQuarter = $allTenders->whereNotNull('date_of_submission')->groupBy(fn($t) => "Q" . Carbon::parse($t->date_of_submission)->quarter)->map->count();
+        $tenderQuantities = ['Q1' => $tendersByQuarter->get('Q1', 0), 'Q2' => $tendersByQuarter->get('Q2', 0), 'Q3' => $tendersByQuarter->get('Q3', 0), 'Q4' => $tendersByQuarter->get('Q4', 0)];
         return view('livewire.dashboard.dashboard', [
             'statusCounts' => $statusCounts,
             'urgentTenders' => $urgentTenders,

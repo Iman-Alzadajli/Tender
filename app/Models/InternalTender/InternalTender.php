@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\TenderNote;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class InternalTender extends Model
 {
@@ -33,7 +35,7 @@ class InternalTender extends Model
         'status',
         'reason_of_cancel',
         'submitted_price',
-        'awarded_price',  
+        'awarded_price',
         'reason_of_recall',
 
     ];
@@ -80,5 +82,10 @@ class InternalTender extends Model
     public function focalPoints(): HasMany
     {
         return $this->hasMany(FocalPoint::class);
+    }
+
+    public function notes(): MorphMany
+    {
+        return $this->morphMany(TenderNote::class, 'noteable');
     }
 }

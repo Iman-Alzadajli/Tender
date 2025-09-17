@@ -418,91 +418,101 @@
                         </div>
                         @endforeach
                         <hr class="my-4">
+
+                        {{-- Follow-up & Status --}}
                         <h6 class="mb-3 fw-bold">Follow-up & Status</h6>
                         <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label">Is there a third-party? <span class="text-danger">*</span></label>
+                            <div class="col-md-4"><label class="form-label">Is there a third-party? <span class="text-danger">*</span></label>
                                 <div class="d-flex align-items-center pt-1">
-                                    <div class="form-check me-4">
-                                        <input class="form-check-input" type="radio" wire:model="has_third_party" value="1" id="thirdPartyYes" @if($mode=='view' ) disabled @endif>
-                                        <label class="form-check-label" for="thirdPartyYes">Yes</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" wire:model="has_third_party" value="0" id="thirdPartyNo" @if($mode=='view' ) disabled @endif>
-                                        <label class="form-check-label" for="thirdPartyNo">No</label>
-                                    </div>
+                                    <div class="form-check me-4"><input class="form-check-input" type="radio" wire:model="has_third_party" value="1" id="thirdPartyYes" @if($mode=='view' ) disabled @endif><label class="form-check-label" for="thirdPartyYes">Yes</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="radio" wire:model="has_third_party" value="0" id="thirdPartyNo" @if($mode=='view' ) disabled @endif><label class="form-check-label" for="thirdPartyNo">No</label></div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Last date of Follow-up <span class="text-danger">*</span></label>
-                                <input type="date" wire:model="last_follow_up_date" class="form-control @error('last_follow_up_date') is-invalid @enderror" onfocus="this.showPicker()" @if($mode=='view' ) readonly @endif>
-                                @error('last_follow_up_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Channel of Follow-up <span class="text-danger">*</span></label>
-                                <select wire:model="follow_up_channel" class="form-select @error('follow_up_channel') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
+                            <div class="col-md-4"><label class="form-label">Last date of Follow-up</label><input type="date" wire:model="last_follow_up_date" class="form-control @error('last_follow_up_date') is-invalid @enderror" onfocus="this.showPicker()" @if($mode=='view' ) readonly @endif>@error('last_follow_up_date')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                            <div class="col-md-4"><label class="form-label">Channel of Follow-up <span class="text-danger">*</span></label><select wire:model="follow_up_channel" class="form-select @error('follow_up_channel') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
                                     <option value="">Select Channel</option>
                                     <option value="Email">Email</option>
                                     <option value="Call">Call</option>
                                     <option value="Meeting">Meeting</option>
-                                </select>
-                                @error('follow_up_channel')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
+                                </select>@error('follow_up_channel')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
                             <div class="col-12"><label class="form-label">Notes from Follow-up</label><textarea wire:model="follow_up_notes" class="form-control" rows="3" @if($mode=='view' ) readonly @endif></textarea></div>
-
-
-                            <div class="col-md-6">
-                                <label class="form-label">Status <span class="text-danger">*</span></label>
-                                <select wire:model.live="status" class="form-select @error('status') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
+                            <div class="col-md-6"><label class="form-label">Status <span class="text-danger">*</span></label><select wire:model.live="status" class="form-select @error('status') is-invalid @enderror" @if($mode=='view' ) disabled @endif>
                                     <option value="Recall">Recall</option>
                                     <option value="BuildProposal">Build Proposal</option>
                                     <option value="Awarded to Company (win)">Awarded to Company (win)</option>
                                     <option value="Under Evaluation">Under Evaluation</option>
                                     <option value="Awarded to Others (loss)">Awarded to Others (loss)</option>
                                     <option value="Cancel">Cancel</option>
-                                </select>
-                                @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-
-                            {{-- ✅ الحقول الديناميكية الجديدة --}}
-
-                            {{-- 1. حقل حالة "Recall" --}}
-                            @if($status === 'Recall')
-                            <div class="col-md-6">
-                                <label class="form-label">Reason of Recall <span class="text-danger">*</span></label>
-                                <textarea wire:model="reason_of_recall" class="form-control @error('reason_of_recall') is-invalid @enderror" rows="1" @if($mode=='view' ) readonly @endif></textarea>
-                                @error('reason_of_recall')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            @endif
-
-                            {{-- 2. حقل حالة "Under Evaluation" --}}
-                            @if($status === 'Under Evaluation')
-                            <div class="col-md-6">
-                                <label class="form-label">Submitted Price <span class="text-danger">*</span></label>
-                                <input type="number" step="0.01" wire:model="submitted_price" class="form-control @error('submitted_price') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
-                                @error('submitted_price')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            @endif
-
-                            {{-- 3. حقل حالة "Awarded to Others (loss)" --}}
-                            @if($status === 'Awarded to Others (loss)')
-                            <div class="col-md-6">
-                                <label class="form-label">Awarded Price <span class="text-danger">*</span></label>
-                                <input type="number" step="0.01" wire:model="awarded_price" class="form-control @error('awarded_price') is-invalid @enderror" @if($mode=='view' ) readonly @endif>
-                                @error('awarded_price')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            @endif
-
-                            {{-- 4. حقل حالة "Cancel" (موجود مسبقاً) --}}
-                            @if($status === 'Cancel')
-                            <div class="col-md-6">
-                                <label class="form-label">Reason of Cancel <span class="text-danger">*</span></label>
-                                <textarea wire:model="reason_of_cancel" class="form-control @error('reason_of_cancel') is-invalid @enderror" rows="1" @if($mode=='view' ) readonly @endif></textarea>
-                                @error('reason_of_cancel')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            @endif
-
+                                </select>@error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                            @if($status === 'Recall')<div class="col-md-6"><label class="form-label">Reason of Recall <span class="text-danger">*</span></label><textarea wire:model="reason_of_recall" class="form-control @error('reason_of_recall') is-invalid @enderror" rows="1" @if($mode=='view' ) readonly @endif></textarea>@error('reason_of_recall')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>@endif
+                            @if($status === 'Under Evaluation')<div class="col-md-6"><label class="form-label">Submitted Price <span class="text-danger">*</span></label><input type="number" step="0.01" wire:model="submitted_price" class="form-control @error('submitted_price') is-invalid @enderror" @if($mode=='view' ) readonly @endif>@error('submitted_price')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>@endif
+                            @if($status === 'Awarded to Others (loss)')<div class="col-md-6"><label class="form-label">Awarded Price <span class="text-danger">*</span></label><input type="number" step="0.01" wire:model="awarded_price" class="form-control @error('awarded_price') is-invalid @enderror" @if($mode=='view' ) readonly @endif>@error('awarded_price')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>@endif
+                            @if($status === 'Cancel')<div class="col-md-6"><label class="form-label">Reason of Cancel <span class="text-danger">*</span></label><textarea wire:model="reason_of_cancel" class="form-control @error('reason_of_cancel') is-invalid @enderror" rows="1" @if($mode=='view' ) readonly @endif></textarea>@error('reason_of_cancel')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>@endif
                         </div>
+
+                        {{-- ✅✅✅ قسم الملاحظات الجديد - تأكد من وجوده ✅✅✅ --}}
+                        @if($mode != 'add')
+                        <hr class="my-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 fw-bold">Notes</h6>
+                        </div>
+
+                        {{-- ✅ إضافة ملاحظة جديدة (فقط في وضع التعديل والعرض) --}}
+                        @if($mode == 'edit')
+                        <div class="mb-4">
+                            <label for="newNote" class="form-label fw-bold">Add a new note</label>
+                            <textarea wire:model="newNoteContent" id="newNote" class="form-control @error('newNoteContent') is-invalid @enderror" rows="3" placeholder="Write your note here..."></textarea>
+                            @error('newNoteContent') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <button wire:click.prevent="addNote" class="btn btn-primary mt-2">
+                                <span wire:loading.remove wire:target="addNote">Add Note</span>
+                                <span wire:loading wire:target="addNote">Adding...</span>
+                            </button>
+                        </div>
+                        @endif
+
+                        {{-- عرض الملاحظات الحالية --}}
+                        <div class="mb-3">
+                            @forelse($notes as $note)
+                            <div class="card mb-3 bg-light" wire:key="note-{{ $note->id }}">
+                                <div class="card-body">
+                                    {{-- وضع التعديل --}}
+                                    @if($editingNoteId === $note->id)
+                                    <textarea wire:model="editingNoteContent" class="form-control @error('editingNoteContent') is-invalid @enderror" rows="3"></textarea>
+                                    @error('editingNoteContent') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                    <div class="mt-2">
+                                        <button wire:click.prevent="updateNote({{ $note->id }})" class="btn btn-sm btn-primary">Save</button>
+                                        <button wire:click.prevent="cancelEdit" class="btn btn-sm btn-secondary">Cancel</button>
+                                    </div>
+                                    @else
+                                    {{-- وضع العرض --}}
+                                    <p class="card-text" style="white-space: pre-wrap;">{{ $note->content }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            By: <strong>{{ $note->user->name ?? 'N/A' }}</strong> |
+                                            On: {{ $note->created_at->format('d M, Y H:i') }}
+                                            @if($note->created_at->diffInSeconds($note->updated_at) > 1)
+                                            <span class="fst-italic">(Edited)</span>
+                                            @endif
+                                        </small>
+                                        {{-- أزرار التحكم (تظهر فقط لصاحب الملاحظة وفي وضع التعديل) --}}
+                                        @if($mode == 'edit')
+                                        @can('update', $note)
+                                        <div>
+                                            <button wire:click.prevent="editNote({{ $note->id }})" class="btn btn-sm btn-link text-primary p-0" title="Edit"><i class="bi bi-pencil"></i></button>
+                                            <button wire:click.prevent="deleteNote({{ $note->id }})" wire:confirm="Are you sure you want to delete this note?" class="btn btn-sm btn-link text-danger p-0 ms-2" title="Delete"><i class="bi bi-trash2"></i></button>
+                                        </div>
+                                        @endcan
+                                        @endif
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+                            @empty
+                            <p class="text-muted text-center">No notes yet.</p>
+                            @endforelse
+                        </div>
+                        @endif
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" wire:click="$set('showModal', false)">@if($mode == 'view') Close @else Cancel @endif</button>

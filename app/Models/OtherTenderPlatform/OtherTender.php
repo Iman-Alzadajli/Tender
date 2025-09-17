@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Models\OtherTenderPlatform\FocalPointO;
+use App\Models\TenderNote; 
+use Illuminate\Database\Eloquent\Relations\MorphMany; 
 
 class OtherTender extends Model
 {
@@ -33,8 +35,8 @@ class OtherTender extends Model
         'status',
         'reason_of_cancel',
         'reason_of_cancel',
-        'submitted_price',  
-        'awarded_price', 
+        'submitted_price',
+        'awarded_price',
         'reason_of_recall',
 
     ];
@@ -77,5 +79,10 @@ class OtherTender extends Model
     public function focalPoints(): HasMany
     {
         return $this->hasMany(FocalPointO::class, 'other_tender_id');
+    }
+
+    public function notes(): MorphMany
+    {
+        return $this->morphMany(TenderNote::class, 'noteable');
     }
 }

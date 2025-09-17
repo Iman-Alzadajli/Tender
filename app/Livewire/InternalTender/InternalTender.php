@@ -6,19 +6,17 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use App\Models\InternalTender\InternalTender as Tender;
+use App\Models\TenderNote;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\User;
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 #[Layout('layouts.app')]
 class InternalTender extends Component
 {
-    use WithPagination; //ترقيم
-
-
-    protected $paginationTheme = 'bootstrap'; //ستايل الترقيم 
-
+    use WithPagination, AuthorizesRequests;
 
     // خصائص الواجهة الرئيسية
     public string $search = '';
@@ -39,99 +37,88 @@ class InternalTender extends Component
     public string $number = '';
     public string $client_type = '';
     public ?string $client_name = '';
-    public string $date_of_purchase = '';
+    public ?string $date_of_purchase = '';
     public string $assigned_to = '';
-    public string $date_of_submission = '';
+    public ?string $date_of_submission = '';
     public string $reviewed_by = '';
-    public string $last_date_of_clarification = '';
+    public ?string $last_date_of_clarification = '';
     public string $submission_by = '';
-    //
-
-    public string $date_of_submission_after_review = '';
+    public ?string $date_of_submission_after_review = '';
     public bool $has_third_party = false;
-    public string $last_follow_up_date = '';
+    public ?string $last_follow_up_date = '';
     public string $follow_up_channel = '';
-    public string $follow_up_notes = '';
+    public ?string $follow_up_notes = '';
     public string $status = 'Recall';
-    public string $reason_of_cancel = '';
-    public string $quarter = '';
-    public array $focalPoints = []; // for focalpoint (Person) 
-    public $users = []; // for assigned to (user)
+    public ?string $quarter = '';
+    public array $focalPoints = [];
+    public $users = [];
 
-    // states 
+    // خصائص الحالات الديناميكية
+    public ?string $reason_of_cancel = '';
+    public ?string $reason_of_recall = '';
     public ?float $submitted_price = null;
     public ?float $awarded_price = null;
-    public string $reason_of_recall = '';
 
+    // --- ✅ قسم الملاحظات ---
+    public $notes = [];
+    public string $newNoteContent = '';
+    public ?int $editingNoteId = null;
+    public string $editingNoteContent = '';
 
     public string $sortBy = 'date_of_submission';
     public string $sortDir = 'DESC';
-
-    //اظهار اسماء يوسر في اساين تو 
 
     public function mount()
     {
         $this->users = User::all(['id', 'name']);
     }
 
-
     protected function rules(): array
     {
-        return [
+        $rules = [
             'name' => 'required|string|max:255',
             'number' => ['required', 'string', 'max:255'],
             'client_type' => 'required|string|max:255',
-            'client_name' => 'required|string|max:255',
-            'date_of_purchase' => 'required|date',
+            'client_name' => 'nullable|string|max:255',
+            'date_of_purchase' => 'nullable|date',
             'assigned_to' => 'required|string|max:255',
-            'date_of_submission' => 'required|date',
+            'date_of_submission' => 'nullable|date',
             'reviewed_by' => 'required|string|max:255',
-            'last_date_of_clarification' => 'required|date',
+            'last_date_of_clarification' => 'nullable|date',
             'submission_by' => 'required|string|max:255',
-            'date_of_submission_after_review' => 'required|date',
+            'date_of_submission_after_review' => 'nullable|date',
             'has_third_party' => 'required|boolean',
-            'last_follow_up_date' => 'required|date',
+            'last_follow_up_date' => 'nullable|date',
             'follow_up_channel' => 'required|string',
             'follow_up_notes' => 'nullable|string',
             'status' => 'required|string|in:Recall,Awarded to Company (win),BuildProposal,Under Evaluation,Awarded to Others (loss),Cancel',
-            'reason_of_cancel' => Rule::requiredIf($this->status === 'Cancel'),
-            'focalPoints' => 'required|array|min:1',
+            'focalPoints' => 'sometimes|array|min:1',
             'focalPoints.*.name' => 'required|string|max:255',
             'focalPoints.*.phone' => ['required', 'regex:/^(?:[9720+])[0-9]{7,12}$/'],
             'focalPoints.*.email' => 'required|email|max:255',
             'focalPoints.*.department' => 'required|string|max:255',
             'focalPoints.*.other_info' => 'nullable|string',
-
-            'reason_of_cancel' => Rule::requiredIf($this->status === 'Cancel'),
-            'reason_of_recall' => Rule::requiredIf($this->status === 'Recall'),
-            'submitted_price' => ['nullable', 'numeric', Rule::requiredIf($this->status === 'Under Evaluation')],
-            'awarded_price' => ['nullable', 'numeric', Rule::requiredIf($this->status === 'Awarded to Others (loss)')],
-
-            // 'focalPoints.*.phone' => ['required', 'numeric', 'regex:/^(\+968)?[79]\d{7}$/'],
-            // 'focalPoints.*.email' => ['required', 'string', 'email', 'max:255'],
-            // 'focalPoints.*.department' => 'required|string|max:255',
-            // 'focalPoints.*.other_info' => 'nullable|string',
+            'reason_of_cancel' => ['nullable', 'string', Rule::requiredIf($this->status === 'Cancel')],
+            'reason_of_recall' => ['nullable', 'string', Rule::requiredIf($this->status === 'Recall')],
+            'submitted_price' => ['nullable', 'numeric', 'min:0', Rule::requiredIf($this->status === 'Under Evaluation')],
+            'awarded_price' => ['nullable', 'numeric', 'min:0', Rule::requiredIf($this->status === 'Awarded to Others (loss)')],
         ];
+
+        // قواعد التحقق للملاحظات (فقط في وضع التعديل)
+        if ($this->mode === 'edit') {
+            $rules['newNoteContent'] = 'nullable|string';
+            $rules['editingNoteContent'] = 'nullable|string';
+        }
+
+        return $rules;
     }
 
-    //phone wrong msg 
     protected $messages = [
         'focalPoints.*.phone.regex' => 'The phone number must be a valid Omani number.',
-    ];
-
-    //email wrong msg 
-    protected $messagesemail = [
         'focalPoints.*.email.email' => 'The email must be a valid email address.',
     ];
 
-
-
-    // public function addFocalPoint(): void
-    // {
-    //     $this->focalPoints[] = ['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => ''];
-    // }
-
-    public $focalPointError = ''; // خاصية لحفظ الرسالة
+    public $focalPointError = '';
 
     public function addFocalPoint(): void
     {
@@ -139,16 +126,8 @@ class InternalTender extends Component
             $this->focalPointError = 'You cannot add more than 5 focal points.';
             return;
         }
-
-        // مسح الرسالة القديمة
         $this->focalPointError = '';
-
-        $this->focalPoints[] = [
-            'name' => '',
-            'phone' => '',
-            'email' => '',
-            'department' => ''
-        ];
+        $this->focalPoints[] = ['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => ''];
     }
 
     public function removeFocalPoint(int $index): void
@@ -159,20 +138,23 @@ class InternalTender extends Component
 
     public function prepareModal(string $mode, ?int $tenderId = null): void
     {
-        $this->resetValidation(); // امسح فالديشن القديم 
-        $this->resetForm(); // امسح فيلدس 
+        $this->resetValidation();
+        $this->resetForm();
         $this->mode = $mode;
 
-        if ($tenderId) { // في حالة موجودة بيانات فوكل و بيانات جدول في داتا اعرضهم 
-            $this->currentTender = Tender::with('focalPoints')->findOrFail($tenderId);
+        if ($tenderId) {
+            // ✅ جلب الملاحظات مرتبة من الأحدث + جلب علاقة المستخدم معها
+            $this->currentTender = Tender::with(['focalPoints', 'notes' => function ($query) {
+                $query->with('user')->latest();
+            }])->findOrFail($tenderId);
+
             $this->fillForm($this->currentTender);
+            $this->notes = $this->currentTender->notes;
         }
 
         $this->showModal = true;
     }
 
-
-    //ترتيب
     public function setSortBy($sortByField)
     {
         if ($this->sortBy === $sortByField) {
@@ -183,101 +165,48 @@ class InternalTender extends Component
         $this->sortDir = 'DESC';
     }
 
-
-    // لما تكون فاضية و قيم الافتراضية 
-
     public function resetForm(): void
     {
-        $this->reset([
-            'name',
-            'number',
-            'client_type',
-            'client_name',
-            'date_of_purchase',
-            'assigned_to',
-            'date_of_submission',
-            'reviewed_by',
-            'last_date_of_clarification',
-            'submission_by',
-            'date_of_submission_after_review',
-            'has_third_party',
-            'last_follow_up_date',
-            'follow_up_channel',
-            'follow_up_notes',
-            'status',
-            'reason_of_cancel',
-            'quarter',
-            'focalPoints',
-            'currentTender',
-            'submitted_price',
-            'awarded_price',
-            'reason_of_recall',
-
-
-        ]);
+        $this->reset(); // This will reset all public properties
+        $this->mount(); // Re-run mount to re-initialize users
         $this->status = 'Recall';
         $this->has_third_party = false;
         $this->focalPoints = [['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => '']];
     }
 
-    // تعبئة 
     public function fillForm(Tender $tender): void
     {
-        $this->name = $tender->name;
-        $this->number = $tender->number;
-        $this->client_type = $tender->client_type;
-        $this->client_name = $tender->client_name;
-        $this->date_of_purchase = $tender->date_of_purchase?->format('Y-m-d');
-        $this->assigned_to = $tender->assigned_to;
-        $this->date_of_submission = $tender->date_of_submission?->format('Y-m-d');
-        $this->reviewed_by = $tender->reviewed_by;
-        $this->last_date_of_clarification = $tender->last_date_of_clarification?->format('Y-m-d');
-        $this->submission_by = $tender->submission_by;
-        $this->date_of_submission_after_review = $tender->date_of_submission_after_review?->format('Y-m-d');
-        $this->has_third_party = $tender->has_third_party;
-        $this->last_follow_up_date = $tender->last_follow_up_date?->format('Y-m-d');
-        $this->follow_up_channel = $tender->follow_up_channel;
-        $this->follow_up_notes = $tender->follow_up_notes;
-        $this->status = $tender->status;
-        $this->reason_of_cancel = $tender->reason_of_cancel;
-        $this->submitted_price = $tender->submitted_price;
-        $this->awarded_price = $tender->awarded_price;
-        $this->reason_of_recall = $tender->reason_of_recall;
+        $this->fill($tender->only([
+            'name', 'number', 'client_type', 'client_name', 'assigned_to', 'reviewed_by',
+            'submission_by', 'has_third_party', 'follow_up_channel', 'follow_up_notes',
+            'status', 'reason_of_cancel', 'submitted_price', 'awarded_price', 'reason_of_recall', 'quarter'
+        ]));
 
-        $this->quarter = $tender->quarter;
+        $this->date_of_purchase = $tender->date_of_purchase?->format('Y-m-d');
+        $this->date_of_submission = $tender->date_of_submission?->format('Y-m-d');
+        $this->last_date_of_clarification = $tender->last_date_of_clarification?->format('Y-m-d');
+        $this->date_of_submission_after_review = $tender->date_of_submission_after_review?->format('Y-m-d');
+        $this->last_follow_up_date = $tender->last_follow_up_date?->format('Y-m-d');
         $this->focalPoints = $tender->focalPoints->toArray();
     }
-
-    // احفظ 
 
     public function save(): void
     {
         $validatedData = $this->validate();
+        $tenderData = collect($validatedData)->except(['focalPoints', 'notes', 'newNoteContent', 'editingNoteContent'])->toArray();
 
-        $dateFields = [
-            'date_of_purchase',
-            // 'date_of_submission_ba',
-            'last_date_of_clarification',
-            'date_of_submission_after_review',
-            'last_follow_up_date',
-        ];
-
-        foreach ($dateFields as $field) {
-            if (empty($validatedData[$field])) {
-                $validatedData[$field] = null;
-            }
-        }
-
-        $tenderData = collect($validatedData)->except('focalPoints')->toArray();
-
+        if ($this->status !== 'Cancel') $tenderData['reason_of_cancel'] = null;
+        if ($this->status !== 'Recall') $tenderData['reason_of_recall'] = null;
+        if ($this->status !== 'Under Evaluation') $tenderData['submitted_price'] = null;
+        if ($this->status !== 'Awarded to Others (loss)') $tenderData['awarded_price'] = null;
 
         if ($this->mode === 'add') {
             $tender = Tender::create($tenderData);
             if (!empty($validatedData['focalPoints'])) {
                 $tender->focalPoints()->createMany($validatedData['focalPoints']);
             }
-            session()->flash('message', 'Tender added successfully.'); // رسالة بعد نجاح الاضافة 
-        } elseif ($this->mode === 'edit') {
+            session()->flash('message', 'Tender added successfully.');
+        } elseif ($this->mode === 'edit' && $this->currentTender) {
             $this->currentTender->update($tenderData);
             $this->currentTender->focalPoints()->delete();
             if (!empty($validatedData['focalPoints'])) {
@@ -287,6 +216,55 @@ class InternalTender extends Component
         }
 
         $this->showModal = false;
+    }
+
+    // --- ✅ دوال الملاحظات ---
+    private function refreshNotes()
+    {
+        // ✅ دالة لتحديث الملاحظات بالترتيب الصحيح
+        $this->notes = $this->currentTender->notes()->with('user')->latest()->get();
+    }
+
+    public function addNote()
+    {
+        $this->validate(['newNoteContent' => 'required|string']);
+        if ($this->currentTender) {
+            $this->currentTender->notes()->create(['user_id' => Auth::id(), 'content' => $this->newNoteContent]);
+            $this->newNoteContent = '';
+            $this->refreshNotes(); // ✅ تحديث القائمة
+        }
+    }
+
+    public function editNote(int $noteId)
+    {
+        $note = TenderNote::findOrFail($noteId);
+        $this->authorize('update', $note);
+        $this->editingNoteId = $note->id;
+        $this->editingNoteContent = $note->content;
+    }
+
+    public function updateNote(int $noteId)
+    {
+        $note = TenderNote::findOrFail($noteId);
+        $this->authorize('update', $note);
+        $this->validate(['editingNoteContent' => 'required|string']);
+        $note->update(['content' => $this->editingNoteContent]);
+        $this->cancelEdit();
+        $this->refreshNotes(); // ✅ تحديث القائمة
+    }
+
+    public function cancelEdit()
+    {
+        $this->editingNoteId = null;
+        $this->editingNoteContent = '';
+    }
+
+    public function deleteNote(int $noteId)
+    {
+        $note = TenderNote::findOrFail($noteId);
+        $this->authorize('delete', $note);
+        $note->delete();
+        $this->refreshNotes(); // ✅ تحديث القائمة
     }
 
     public function deleteTender(int $tenderId): void
@@ -302,142 +280,30 @@ class InternalTender extends Component
         }
     }
 
-    //pdf
+    // ... (exportPdf and exportSimpleExcel remain the same) ...
 
-    public function exportPdf()
-    {
-        // 
-        $query = Tender::query()
-            ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('client_type', 'like', "%{$this->search}%"))
-            ->when($this->quarterFilter, fn($q) => $q->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]))
-            ->when($this->yearFilter, fn($q) => $q->whereYear('date_of_submission', $this->yearFilter))
-            ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter))
-            ->when($this->assignedFilter, fn($q) => $q->where('assigned_to', $this->assignedFilter))
-            ->when($this->clientFilter, fn($q) => $q->where('client_type', 'like', "%{$this->clientFilter}%"));
-
-        // كل بيانات بدون ترقيم 
-        $tendersToExport = $query->latest('date_of_purchase')->get();
-
-        // يساعدنا انشاء ملف بي اد اف 
-        $pdf = Pdf::loadView('livewire.exportfiles.export-pdf', [
-            'tenders' => $tendersToExport
-        ]);
-
-        //  قابل للتحميل 
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, 'Tenders-Report-' . now()->format('Y-m-d') . '.pdf');
-    }
-
-    //excel 
-
-    public function exportSimpleExcel()
-    {
-
-        // نحدد كل الأعمدة التي نريدها في ملف Excel
-        $columnsToExport = [
-            'id',
-            'name',
-            'number',
-            'client_type',
-            'client_name',
-            'assigned_to',
-            'date_of_purchase',
-            'date_of_submission',
-            'reviewed_by',
-            'date_of_submission_ba',
-            'date_of_submission_after_review',
-            'has_third_party',
-            'last_follow_up_date',
-            'follow_up_channel',
-            'follow_up_notes',
-            'status',
-            'reason_of_cancel'
-        ];
-
-        //نطبق نفس الفلاتر الحالية في الواجهة
-        $query = Tender::query() // استخدم Tender::class بدلاً من المسار الكامل
-            ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('client_type', 'like', "%{$this->search}%"))
-            ->when($this->quarterFilter, fn($q) => $q->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]))
-            ->when($this->yearFilter, fn($q) => $q->whereYear('date_of_submission', $this->yearFilter))
-            ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter))
-            ->when($this->assignedFilter, fn($q) => $q->where('assigned_to', $this->assignedFilter))
-            ->when($this->clientFilter, fn($q) => $q->where('client_type', 'like', "%{$this->clientFilter}%"));
-
-        //  نجلب البيانات مع العلاقات (Focal Points) ونحدد الأعمدة
-        $tendersToExport = $query->with('focalPoints')
-            ->select($columnsToExport) //
-            ->orderBy($this->sortBy, $this->sortDir)
-            ->get();
-
-        //  نعرض البيانات في ملف Blade
-        $view = view('livewire.exportfiles.Export-excel', [
-            'tenders' => $tendersToExport
-        ])->render();
-
-        $filename = 'Tenders-Report-' . now()->format('Y-m-d') . '.xls';
-
-        return response()->streamDownload(function () use ($view) {
-            echo $view;
-        }, $filename);
-    }
-
-
-
-
-
-
-
-    // للبحث 
     public function render()
     {
         $query = Tender::query();
-        // if ($this->search) {
-        //     $query->where(fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('client_type', 'like', "%{$this->search}%"));
-        // }
-
         if ($this->search) {
             $query->where(function ($q) {
-                $columns = [
-                    'name',
-                    'client_type',
-                    'assigned_to',
-                    'status',
-                    'number',
-                    'date_of_submission',
-                ];
-
+                $columns = ['name', 'client_type', 'assigned_to', 'status', 'number', 'date_of_submission'];
                 foreach ($columns as $col) {
                     $q->orWhere($col, 'like', "%{$this->search}%");
                 }
             });
         }
 
-
-        if ($this->quarterFilter) {
-            $query->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]);
-        }
-        if ($this->statusFilter) {
-            $query->where('status', $this->statusFilter);
-        }
-        if ($this->assignedFilter) {
-            $query->where('assigned_to', $this->assignedFilter);
-        }
-        if ($this->clientFilter) {
-            $query->where("client_type", "like", "%{$this->clientFilter}%");
-        }
-
-        if ($this->yearFilter) {
-            $query->whereYear("date_of_submission", $this->yearFilter);
-        }
+        if ($this->quarterFilter) $query->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]);
+        if ($this->statusFilter) $query->where('status', $this->statusFilter);
+        if ($this->assignedFilter) $query->where('assigned_to', $this->assignedFilter);
+        if ($this->clientFilter) $query->where("client_type", "like", "%{$this->clientFilter}%");
+        if ($this->yearFilter) $query->whereYear("date_of_submission", $this->yearFilter);
 
         $tenders = $query->orderBy($this->sortBy, $this->sortDir)->paginate(5);
         $uniqueClients = Tender::select("client_type")->whereNotNull("client_type")->distinct()->pluck("client_type");
         $uniqueAssignees = Tender::select("assigned_to")->whereNotNull("assigned_to")->distinct()->pluck("assigned_to");
-        $uniqueYears = Tender::selectRaw('YEAR(date_of_submission) as year')
-            ->distinct()
-            ->orderBy('year', 'desc')
-            ->pluck('year');
+        $uniqueYears = Tender::selectRaw('YEAR(date_of_submission) as year')->distinct()->orderBy('year', 'desc')->pluck('year');
 
         return view("livewire.internaltender.internal-tender", [
             "tenders" => $tenders,

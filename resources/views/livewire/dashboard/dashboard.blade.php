@@ -170,7 +170,7 @@
     <!-- Tender Modal (Form) -->
     @if ($showingTenderModal)
     <div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog-scrollable modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <form wire:submit.prevent="saveTender">
                     <div class="modal-header">
@@ -303,6 +303,68 @@
                             </div>
                             @endif
                         </div>
+
+                        {{-- ✅✅✅ قسم الملاحظات الجديد ✅✅✅ --}}
+                        <hr class="my-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 fw-bold">Notes</h6>
+                        </div>
+
+                        {{-- ✅ إضافة ملاحظة جديدة (فقط في وضع التعديل) --}}
+                        @if($isEditMode)
+                        <div class="mb-4">
+                            <label for="newNote" class="form-label fw-bold">Add a new note</label>
+                            <textarea wire:model="newNoteContent" id="newNote" class="form-control @error('newNoteContent') is-invalid @enderror" rows="3" placeholder="Write your note here..."></textarea>
+                            @error('newNoteContent') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <button wire:click.prevent="addNote" class="btn btn-primary mt-2">
+                                <span wire:loading.remove wire:target="addNote">Add Note</span>
+                                <span wire:loading wire:target="addNote">Adding...</span>
+                            </button>
+                        </div>
+                        @endif
+
+                        {{-- عرض الملاحظات الحالية --}}
+                        <div class="mb-3">
+                            @forelse($notes as $note)
+                                <div class="card mb-3 bg-light" wire:key="note-{{ $note->id }}">
+                                    <div class="card-body">
+                                        {{-- وضع التعديل --}}
+                                        @if($editingNoteId === $note->id)
+                                            <textarea wire:model="editingNoteContent" class="form-control @error('editingNoteContent') is-invalid @enderror" rows="3"></textarea>
+                                            @error('editingNoteContent') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                            <div class="mt-2">
+                                                <button wire:click.prevent="updateNote({{ $note->id }})" class="btn btn-sm btn-primary">Save</button>
+                                                <button wire:click.prevent="cancelEdit" class="btn btn-sm btn-secondary">Cancel</button>
+                                            </div>
+                                        @else
+                                        {{-- وضع العرض --}}
+                                            <p class="card-text" style="white-space: pre-wrap;">{{ $note->content }}</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">
+                                                    By: <strong>{{ $note->user->name ?? 'N/A' }}</strong> | 
+                                                    On: {{ $note->created_at->format('d M, Y H:i') }}
+                                                    @if($note->created_at->diffInSeconds($note->updated_at) > 1)
+                                                        <span class="fst-italic">(Edited)</span>
+                                                    @endif
+                                                </small>
+                                                {{-- أزرار التحكم (تظهر فقط لصاحب الملاحظة وفي وضع التعديل) --}}
+                                                @if($isEditMode)
+                                                    @can('update', $note)
+                                                    <div>
+                                                        <button wire:click.prevent="editNote({{ $note->id }})" class="btn btn-sm btn-link text-primary p-0" title="Edit"><i class="bi bi-pencil"></i></button>
+                                                        <button wire:click.prevent="deleteNote({{ $note->id }})" wire:confirm="Are you sure you want to delete this note?" class="btn btn-sm btn-link text-danger p-0 ms-2" title="Delete"><i class="bi bi-trash2"></i></button>
+                                                    </div>
+                                                    @endcan
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @empty
+                                <p class="text-muted text-center">No notes yet.</p>
+                            @endforelse
+                        </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" wire:click="$set('showingTenderModal', false)">Close</button>
