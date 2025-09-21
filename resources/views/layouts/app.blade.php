@@ -89,6 +89,13 @@
                         <span>Users</span>
                     </a>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('contact-list') ? 'active' : '' }}" href="{{ route('contact-list') }}">
+                        <i class="bi-card-list"></i>
+                        <span>Contact List</span>
+                    </a>
+                </li>
             </ul>
 
 

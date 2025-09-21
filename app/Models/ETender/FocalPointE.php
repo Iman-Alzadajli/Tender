@@ -10,9 +10,16 @@ class FocalPointE extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    // protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'phone',
+        'email',
+        'department',
+        'other_info',
+    ];
 
-    public function eTender(): BelongsTo
+    public function tender(): BelongsTo
     {
         return $this->belongsTo(ETender::class, 'e_tender_id');
     }

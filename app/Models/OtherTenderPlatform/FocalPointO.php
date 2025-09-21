@@ -34,11 +34,8 @@ class FocalPointO extends Model
     /**
      * Get the tender that the focal point belongs to.
      */
-    public function otherTender(): BelongsTo
-
+    public function tender(): BelongsTo
     {
-        
-    
         return $this->belongsTo(OtherTender::class, 'other_tender_id');
     }
 }

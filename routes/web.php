@@ -7,6 +7,7 @@ use App\Livewire\InternalTender\InternalTender;
 use App\Livewire\ETender\ETender;
 use App\Livewire\OtherTenderPlatform\OtherTenderPlatform;
 use App\Livewire\Users\Users;
+use App\Livewire\ContactList\ContactList;
 
 // صفحة تسجيل الدخول
 Route::get('/', function () {
@@ -28,6 +29,9 @@ Route::middleware('auth')->group(function () {
 
     // Users Page
     Route::get('/users', Users::class)->name('users');
+
+    // Contact List Page
+    Route::get('/contact-list', ContactList::class)->name('contact-list');
 
 
     // Profile Page
