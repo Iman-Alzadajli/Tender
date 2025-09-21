@@ -44,6 +44,14 @@ class Dashboard extends Component
     public ?string $follow_up_notes = '';
     public string $status = 'Recall';
     public array $focalPoints = [];
+    public string $focalPointError = '';
+
+    // خصائص الشراكة
+    public ?string $partnership_company = '';
+    public ?string $partnership_person = '';
+    public ?string $partnership_phone = '';
+    public ?string $partnership_email = '';
+    public ?string $partnership_details = '';
 
     // خصائص الحالات الديناميكية
     public ?string $reason_of_cancel = '';
@@ -51,7 +59,7 @@ class Dashboard extends Component
     public ?float $submitted_price = null;
     public ?float $awarded_price = null;
 
-    // --- ✅ قسم الملاحظات ---
+    // قسم الملاحظات
     public $notes = [];
     public string $newNoteContent = '';
     public ?int $editingNoteId = null;
@@ -62,36 +70,66 @@ class Dashboard extends Component
         $this->users = User::orderBy('name')->get(['id', 'name']);
     }
 
-    // --- قواعد التحقق ---
     protected function rules(): array
     {
-        return [
+        $rules = [
             'name' => 'required|string|max:255',
-            'number' => ['required', 'string', 'max:255'],
+            'number' => 'required|string|max:255',
             'client_type' => 'required|string|max:255',
-            'client_name' => 'nullable|string|max:255',
-            'date_of_purchase' => 'nullable|date',
+            'client_name' => 'required|string|max:255',
+            'date_of_purchase' => 'required|date',
             'assigned_to' => 'required|string|max:255',
-            'date_of_submission' => 'nullable|date',
+            'date_of_submission' => 'required|date',
             'reviewed_by' => 'required|string|max:255',
-            'last_date_of_clarification' => 'nullable|date',
+            'last_date_of_clarification' => 'required|date',
             'submission_by' => 'required|string|max:255',
-            'date_of_submission_after_review' => 'nullable|date',
+            'date_of_submission_after_review' => 'required|date',
             'has_third_party' => 'required|boolean',
-            'last_follow_up_date' => 'nullable|date',
+            'last_follow_up_date' => 'required|date',
             'follow_up_channel' => 'required|string',
             'follow_up_notes' => 'nullable|string',
             'status' => 'required|string|in:Recall,Awarded to Company (win),BuildProposal,Under Evaluation,Awarded to Others (loss),Cancel',
-            'focalPoints' => 'sometimes|array',
+            'focalPoints' => 'required|array|min:1',
             'focalPoints.*.name' => 'required|string|max:255',
             'focalPoints.*.phone' => ['required', 'regex:/^(?:[9720+])[0-9]{7,12}$/'],
             'focalPoints.*.email' => 'required|email|max:255',
             'focalPoints.*.department' => 'required|string|max:255',
+            'focalPoints.*.other_info' => 'nullable|string',
             'reason_of_cancel' => ['nullable', 'string', Rule::requiredIf($this->status === 'Cancel')],
             'reason_of_recall' => ['nullable', 'string', Rule::requiredIf($this->status === 'Recall')],
             'submitted_price' => ['nullable', 'numeric', 'min:0', Rule::requiredIf($this->status === 'Under Evaluation')],
             'awarded_price' => ['nullable', 'numeric', 'min:0', Rule::requiredIf($this->status === 'Awarded to Others (loss)')],
+            'partnership_company' => ['nullable', 'string', 'max:255', Rule::requiredIf($this->has_third_party)],
+            'partnership_person'  => ['nullable', 'string', 'max:255', Rule::requiredIf($this->has_third_party)],
+            'partnership_phone'   => ['nullable', 'string', 'max:255','regex:/^(?:[9720+])[0-9]{7,12}$/', Rule::requiredIf($this->has_third_party)],
+            'partnership_email'   => ['nullable', 'email', 'max:255', Rule::requiredIf($this->has_third_party)],
+            'partnership_details' => 'nullable|string',
+            'newNoteContent' => 'nullable|string',
         ];
+
+        if ($this->isEditMode) { // ✅ استخدام isEditMode بدلاً من mode
+            $rules['editingNoteContent'] = 'nullable|string';
+        }
+
+        return $rules;
+    }
+
+    public function updated($propertyName)
+    {
+        $this->validateOnly($propertyName);
+    }
+
+    public function updatedHasThirdParty($value)
+    {
+        if (!$value) {
+            $this->reset([
+                'partnership_company',
+                'partnership_person',
+                'partnership_phone',
+                'partnership_email',
+                'partnership_details'
+            ]);
+        }
     }
 
     private function getModelClassForType($type)
@@ -112,7 +150,7 @@ class Dashboard extends Component
         $this->tenderModelClass = $this->getModelClassForType($type);
 
         if ($this->tenderModelClass) {
-            $this->currentTender = $this->tenderModelClass::with('focalPoints', 'notes.user')->findOrFail($id);
+            $this->currentTender = $this->tenderModelClass::with(['focalPoints', 'notes' => fn($q) => $q->with('user')->latest()])->findOrFail($id);
             $this->fillForm($this->currentTender);
             $this->notes = $this->currentTender->notes;
         }
@@ -123,8 +161,9 @@ class Dashboard extends Component
 
     public function resetForm(): void
     {
-        // ✅ نستثني users من عملية الريست
         $this->resetExcept('users');
+        $this->has_third_party = false;
+        $this->focalPoints = [['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => '']];
     }
 
     public function fillForm($tender): void
@@ -144,7 +183,12 @@ class Dashboard extends Component
             'reason_of_cancel',
             'submitted_price',
             'awarded_price',
-            'reason_of_recall'
+            'reason_of_recall',
+            'partnership_company',
+            'partnership_person',
+            'partnership_phone',
+            'partnership_email',
+            'partnership_details'
         ]));
 
         $this->date_of_purchase = $tender->date_of_purchase?->format('Y-m-d');
@@ -160,11 +204,19 @@ class Dashboard extends Component
         $validatedData = $this->validate();
 
         if ($this->currentTender) {
-            $tenderData = collect($validatedData)->except(['focalPoints', 'notes'])->toArray();
+            $tenderData = collect($validatedData)->except(['focalPoints', 'notes', 'newNoteContent', 'editingNoteContent'])->toArray();
+
             if ($this->status !== 'Cancel') $tenderData['reason_of_cancel'] = null;
             if ($this->status !== 'Recall') $tenderData['reason_of_recall'] = null;
             if ($this->status !== 'Under Evaluation') $tenderData['submitted_price'] = null;
             if ($this->status !== 'Awarded to Others (loss)') $tenderData['awarded_price'] = null;
+            if (!$this->has_third_party) {
+                $tenderData['partnership_company'] = null;
+                $tenderData['partnership_person'] = null;
+                $tenderData['partnership_phone'] = null;
+                $tenderData['partnership_email'] = null;
+                $tenderData['partnership_details'] = null;
+            }
 
             $this->currentTender->update($tenderData);
 
@@ -187,8 +239,6 @@ class Dashboard extends Component
         }
     }
 
-    public $focalPointError = '';
-
     public function addFocalPoint(): void
     {
         if (count($this->focalPoints) >= 5) {
@@ -196,7 +246,7 @@ class Dashboard extends Component
             return;
         }
         $this->focalPointError = '';
-        $this->focalPoints[] = ['name' => '', 'phone' => '', 'email' => '', 'department' => ''];
+        $this->focalPoints[] = ['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => ''];
     }
 
     public function removeFocalPoint(int $index): void
@@ -207,14 +257,18 @@ class Dashboard extends Component
         }
     }
 
-    // --- ✅✅✅ دوال الملاحظات الجديدة ✅✅✅ ---
+    private function refreshNotes()
+    {
+        $this->notes = $this->currentTender->notes()->with('user')->latest()->get();
+    }
+
     public function addNote()
     {
         $this->validate(['newNoteContent' => 'required|string']);
         if ($this->currentTender) {
             $this->currentTender->notes()->create(['user_id' => Auth::id(), 'content' => $this->newNoteContent]);
             $this->newNoteContent = '';
-            $this->notes = $this->currentTender->notes()->with('user')->get();
+            $this->refreshNotes();
         }
     }
 
@@ -233,7 +287,7 @@ class Dashboard extends Component
         $this->validate(['editingNoteContent' => 'required|string']);
         $note->update(['content' => $this->editingNoteContent]);
         $this->cancelEdit();
-        $this->notes = $this->currentTender->notes()->with('user')->get();
+        $this->refreshNotes();
     }
 
     public function cancelEdit()
@@ -247,7 +301,7 @@ class Dashboard extends Component
         $note = TenderNote::findOrFail($noteId);
         $this->authorize('delete', $note);
         $note->delete();
-        $this->notes = $this->currentTender->notes()->with('user')->get();
+        $this->refreshNotes();
     }
 
     public function render()

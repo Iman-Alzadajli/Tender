@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Models\OtherTenderPlatform\FocalPointO;
-use App\Models\TenderNote; 
-use Illuminate\Database\Eloquent\Relations\MorphMany; 
+use App\Models\TenderNote;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class OtherTender extends Model
 {
@@ -29,6 +29,11 @@ class OtherTender extends Model
         'submission_by',
         'date_of_submission_after_review',
         'has_third_party',
+        'partnership_company',
+        'partnership_person',
+        'partnership_phone',
+        'partnership_email',
+        'partnership_details',
         'last_follow_up_date',
         'follow_up_channel',
         'follow_up_notes',
