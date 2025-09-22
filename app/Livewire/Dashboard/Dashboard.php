@@ -13,6 +13,7 @@ use Illuminate\Validation\Rule;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Arr;
 
 class Dashboard extends Component
 {
@@ -46,12 +47,9 @@ class Dashboard extends Component
     public array $focalPoints = [];
     public string $focalPointError = '';
 
-    // خصائص الشراكة
-    public ?string $partnership_company = '';
-    public ?string $partnership_person = '';
-    public ?string $partnership_phone = '';
-    public ?string $partnership_email = '';
-    public ?string $partnership_details = '';
+    // ✅ خصائص الشراكة الجديدة (كمصفوفة)
+    public array $partnerships = [];
+    public string $partnershipError = '';
 
     // خصائص الحالات الديناميكية
     public ?string $reason_of_cancel = '';
@@ -99,15 +97,18 @@ class Dashboard extends Component
             'reason_of_recall' => ['nullable', 'string', Rule::requiredIf($this->status === 'Recall')],
             'submitted_price' => ['nullable', 'numeric', 'min:0', Rule::requiredIf($this->status === 'Under Evaluation')],
             'awarded_price' => ['nullable', 'numeric', 'min:0', Rule::requiredIf($this->status === 'Awarded to Others (loss)')],
-            'partnership_company' => ['nullable', 'string', 'max:255', Rule::requiredIf($this->has_third_party)],
-            'partnership_person'  => ['nullable', 'string', 'max:255', Rule::requiredIf($this->has_third_party)],
-            'partnership_phone'   => ['nullable', 'string', 'max:255','regex:/^(?:[9720+])[0-9]{7,12}$/', Rule::requiredIf($this->has_third_party)],
-            'partnership_email'   => ['nullable', 'email', 'max:255', Rule::requiredIf($this->has_third_party)],
-            'partnership_details' => 'nullable|string',
-            'newNoteContent' => 'nullable|string',
+
+            // ✅ قواعد التحقق الجديدة للشركاء
+            'partnerships' => [Rule::requiredIf($this->has_third_party), 'array'],
+            'partnerships.*.company_name' => 'required|string|max:255',
+            'partnerships.*.person_name' => 'required|string|max:255',
+            'partnerships.*.phone' => ['required', 'regex:/^(?:[9720+])[0-9]{7,12}$/'],
+            'partnerships.*.email' => 'required|email|max:255',
+            'partnerships.*.details' => 'nullable|string',
         ];
 
-        if ($this->isEditMode) { // ✅ استخدام isEditMode بدلاً من mode
+        if ($this->isEditMode) {
+            $rules['newNoteContent'] = 'nullable|string';
             $rules['editingNoteContent'] = 'nullable|string';
         }
 
@@ -122,13 +123,9 @@ class Dashboard extends Component
     public function updatedHasThirdParty($value)
     {
         if (!$value) {
-            $this->reset([
-                'partnership_company',
-                'partnership_person',
-                'partnership_phone',
-                'partnership_email',
-                'partnership_details'
-            ]);
+            $this->partnerships = [];
+        } elseif (empty($this->partnerships)) {
+            $this->addPartnership();
         }
     }
 
@@ -150,7 +147,7 @@ class Dashboard extends Component
         $this->tenderModelClass = $this->getModelClassForType($type);
 
         if ($this->tenderModelClass) {
-            $this->currentTender = $this->tenderModelClass::with(['focalPoints', 'notes' => fn($q) => $q->with('user')->latest()])->findOrFail($id);
+            $this->currentTender = $this->tenderModelClass::with(['focalPoints', 'partnerships', 'notes' => fn($q) => $q->with('user')->latest()])->findOrFail($id);
             $this->fillForm($this->currentTender);
             $this->notes = $this->currentTender->notes;
         }
@@ -162,8 +159,10 @@ class Dashboard extends Component
     public function resetForm(): void
     {
         $this->resetExcept('users');
+        $this->status = 'Recall';
         $this->has_third_party = false;
         $this->focalPoints = [['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => '']];
+        $this->partnerships = [];
     }
 
     public function fillForm($tender): void
@@ -183,12 +182,7 @@ class Dashboard extends Component
             'reason_of_cancel',
             'submitted_price',
             'awarded_price',
-            'reason_of_recall',
-            'partnership_company',
-            'partnership_person',
-            'partnership_phone',
-            'partnership_email',
-            'partnership_details'
+            'reason_of_recall'
         ]));
 
         $this->date_of_purchase = $tender->date_of_purchase?->format('Y-m-d');
@@ -196,33 +190,63 @@ class Dashboard extends Component
         $this->last_date_of_clarification = $tender->last_date_of_clarification?->format('Y-m-d');
         $this->date_of_submission_after_review = $tender->date_of_submission_after_review?->format('Y-m-d');
         $this->last_follow_up_date = $tender->last_follow_up_date?->format('Y-m-d');
+
         $this->focalPoints = $tender->focalPoints->toArray();
+        $this->partnerships = $tender->partnerships->toArray();
     }
 
     public function saveTender()
     {
         $validatedData = $this->validate();
 
-        if ($this->currentTender) {
-            $tenderData = collect($validatedData)->except(['focalPoints', 'notes', 'newNoteContent', 'editingNoteContent'])->toArray();
+        // التحقق من التكرار داخل النموذج
+        if (isset($validatedData['focalPoints'])) {
+            $uniqueFocalPoints = collect($validatedData['focalPoints'])->unique(fn($item) => strtolower(trim($item['phone'])) . '|' . strtolower(trim($item['email'])));
+            if ($uniqueFocalPoints->count() < count($validatedData['focalPoints'])) {
+                $this->addError('focalPoints', 'Duplicate focal point entries found in the form (same phone and email Together). Please remove duplicates.');
+                return;
+            }
+        }
+        if ($this->has_third_party && isset($validatedData['partnerships'])) {
+            $uniquePartnerships = collect($validatedData['partnerships'])->unique(fn($item) => strtolower(trim($item['company_name'])));
+            if ($uniquePartnerships->count() < count($validatedData['partnerships'])) {
+                $this->addError('partnerships', 'Duplicate partnership entries found in the form (same company name). Please remove duplicates.');
+                return;
+            }
+        }
 
+        if ($this->currentTender) {
+            $tenderData = collect($validatedData)->except(['focalPoints', 'partnerships', 'notes', 'newNoteContent', 'editingNoteContent'])->toArray();
+
+            // تنظيف الحقول الشرطية
             if ($this->status !== 'Cancel') $tenderData['reason_of_cancel'] = null;
             if ($this->status !== 'Recall') $tenderData['reason_of_recall'] = null;
             if ($this->status !== 'Under Evaluation') $tenderData['submitted_price'] = null;
             if ($this->status !== 'Awarded to Others (loss)') $tenderData['awarded_price'] = null;
-            if (!$this->has_third_party) {
-                $tenderData['partnership_company'] = null;
-                $tenderData['partnership_person'] = null;
-                $tenderData['partnership_phone'] = null;
-                $tenderData['partnership_email'] = null;
-                $tenderData['partnership_details'] = null;
-            }
 
             $this->currentTender->update($tenderData);
 
-            $this->currentTender->focalPoints()->delete();
-            if (!empty($validatedData['focalPoints'])) {
-                $this->currentTender->focalPoints()->createMany($validatedData['focalPoints']);
+            // معالجة جهات الاتصال
+            $newFocalPointsData = collect($validatedData['focalPoints'] ?? []);
+            $currentFocalPoints = $this->currentTender->focalPoints()->get();
+            $phonesAndEmailsToKeep = $newFocalPointsData->map(fn($fp) => strtolower(trim($fp['phone'])) . '|' . strtolower(trim($fp['email'])));
+            foreach ($currentFocalPoints as $existingFp) {
+                $key = strtolower(trim($existingFp->phone)) . '|' . strtolower(trim($existingFp->email));
+                if (!$phonesAndEmailsToKeep->contains($key)) {
+                    $existingFp->delete();
+                }
+            }
+            foreach ($newFocalPointsData as $fpData) {
+                $this->currentTender->focalPoints()->updateOrCreate(
+                    ['phone' => $fpData['phone'], 'email' => $fpData['email']],
+                    $fpData
+                );
+            }
+
+            // معالجة الشركاء
+            $this->currentTender->partnerships()->delete();
+            if ($this->has_third_party && !empty($validatedData['partnerships'])) {
+                $this->currentTender->partnerships()->createMany($validatedData['partnerships']);
             }
 
             $this->showingTenderModal = false;
@@ -234,7 +258,7 @@ class Dashboard extends Component
     {
         $modelClass = $this->getModelClassForType($type);
         if ($modelClass) {
-            $modelClass::find($id)->delete();
+            $modelClass::find($id)?->delete();
             session()->flash('message', 'Tender deleted successfully.');
         }
     }
@@ -251,15 +275,31 @@ class Dashboard extends Component
 
     public function removeFocalPoint(int $index): void
     {
-        if (isset($this->focalPoints[$index])) {
-            unset($this->focalPoints[$index]);
-            $this->focalPoints = array_values($this->focalPoints);
+        unset($this->focalPoints[$index]);
+        $this->focalPoints = array_values($this->focalPoints);
+    }
+
+    public function addPartnership(): void
+    {
+        if (count($this->partnerships) >= 5) {
+            $this->partnershipError = 'You cannot add more than 5 partners.';
+            return;
         }
+        $this->partnershipError = '';
+        $this->partnerships[] = ['company_name' => '', 'person_name' => '', 'phone' => '', 'email' => '', 'details' => ''];
+    }
+
+    public function removePartnership(int $index): void
+    {
+        unset($this->partnerships[$index]);
+        $this->partnerships = array_values($this->partnerships);
     }
 
     private function refreshNotes()
     {
-        $this->notes = $this->currentTender->notes()->with('user')->latest()->get();
+        if ($this->currentTender) {
+            $this->notes = $this->currentTender->notes()->with('user')->latest()->get();
+        }
     }
 
     public function addNote()
@@ -306,19 +346,27 @@ class Dashboard extends Component
 
     public function render()
     {
+        // ✅ تم حذف أعمدة الشراكة القديمة من هنا
         $columns = ['id', 'name', 'status', 'date_of_submission', 'client_type', 'client_name', 'number', 'assigned_to'];
+
         $eTendersQuery = ETender::select(array_merge($columns, [DB::raw("'e_tender' as tender_type")]));
         $internalTendersQuery = InternalTender::select(array_merge($columns, [DB::raw("'internal_tender' as tender_type")]));
         $otherTendersQuery = OtherTender::select(array_merge($columns, [DB::raw("'other_tender' as tender_type")]));
+
         $allTenders = $eTendersQuery->unionAll($internalTendersQuery)->unionAll($otherTendersQuery)->get();
+
         $activeStatuses = ['Recall', 'Under Evaluation', 'Awarded to Company (win)', 'BuildProposal'];
         $urgentTenders = $allTenders->whereIn('status', $activeStatuses)
             ->whereNotNull('date_of_submission')
             ->filter(fn($t) => Carbon::parse($t->date_of_submission)->between(Carbon::today(), Carbon::today()->addDays(3)))
             ->sortBy('date_of_submission');
+
         $statusCounts = $allTenders->countBy(fn($tender) => str_replace([' ', '(', ')'], ['_', '', ''], strtolower($tender->status)));
+
         $tendersByQuarter = $allTenders->whereNotNull('date_of_submission')->groupBy(fn($t) => "Q" . Carbon::parse($t->date_of_submission)->quarter)->map->count();
+
         $tenderQuantities = ['Q1' => $tendersByQuarter->get('Q1', 0), 'Q2' => $tendersByQuarter->get('Q2', 0), 'Q3' => $tendersByQuarter->get('Q3', 0), 'Q4' => $tendersByQuarter->get('Q4', 0)];
+
         return view('livewire.dashboard.dashboard', [
             'statusCounts' => $statusCounts,
             'urgentTenders' => $urgentTenders,

@@ -223,3 +223,23 @@
       padding: 0.4rem 0.7rem;
       border-radius: 0.6rem;
   }
+
+  .btn-custom-focal {
+      --bs-btn-color: #fff;
+      --bs-btn-bg: #6da5dc;
+      /* أزرق داكن */
+      --bs-btn-border-color: #1976D2;
+      --bs-btn-hover-color: #fff;
+      --bs-btn-hover-bg: #1565C0;
+      --bs-btn-hover-border-color: #11529D;
+  }
+
+  .btn-custom-partner {
+      --bs-btn-color: #fff;
+      --bs-btn-bg: #546aa5;
+      /* أخضر داكن */
+      --bs-btn-border-color: #342f77;
+      --bs-btn-hover-color: #fff;
+      --bs-btn-hover-bg: #313170;
+      --bs-btn-hover-border-color: #37266a;
+  }

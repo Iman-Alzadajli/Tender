@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Models\OtherTenderPlatform\FocalPointO;
 use App\Models\TenderNote;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Models\Partnership;
 
 class OtherTender extends Model
 {
@@ -29,11 +30,6 @@ class OtherTender extends Model
         'submission_by',
         'date_of_submission_after_review',
         'has_third_party',
-        'partnership_company',
-        'partnership_person',
-        'partnership_phone',
-        'partnership_email',
-        'partnership_details',
         'last_follow_up_date',
         'follow_up_channel',
         'follow_up_notes',
@@ -89,5 +85,12 @@ class OtherTender extends Model
     public function notes(): MorphMany
     {
         return $this->morphMany(TenderNote::class, 'noteable');
+    }
+
+    // علاقة مع النشاطات التجارية
+
+    public function partnerships(): MorphMany
+    {
+        return $this->morphMany(Partnership::class, 'partnerable');
     }
 }

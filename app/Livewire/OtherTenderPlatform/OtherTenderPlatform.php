@@ -18,6 +18,8 @@ class OtherTenderPlatform extends Component
 {
     use WithPagination, AuthorizesRequests;
 
+    protected $paginationTheme = 'bootstrap';
+
     // --- الخصائص العامة ---
     public string $search = '';
     public string $quarterFilter = '';
@@ -49,19 +51,23 @@ class OtherTenderPlatform extends Component
     public array $focalPoints = [];
     public $users = [];
     public string $focalPointError = '';
-    public ?string $partnership_company = '';
-    public ?string $partnership_person = '';
-    public ?string $partnership_phone = '';
-    public ?string $partnership_email = '';
-    public ?string $partnership_details = '';
+
+    // ✅ خصائص الشراكة الجديدة (كمصفوفة)
+    public array $partnerships = [];
+    public string $partnershipError = '';
+
+    // خصائص الحالات الديناميكية
     public ?string $reason_of_cancel = '';
     public ?string $reason_of_recall = '';
     public ?float $submitted_price = null;
     public ?float $awarded_price = null;
+
+    // قسم الملاحظات
     public $notes = [];
     public string $newNoteContent = '';
     public ?int $editingNoteId = null;
     public string $editingNoteContent = '';
+
     public string $sortBy = 'date_of_submission';
     public string $sortDir = 'DESC';
 
@@ -99,15 +105,20 @@ class OtherTenderPlatform extends Component
             'reason_of_recall' => ['nullable', 'string', Rule::requiredIf($this->status === 'Recall')],
             'submitted_price' => ['nullable', 'numeric', 'min:0', Rule::requiredIf($this->status === 'Under Evaluation')],
             'awarded_price' => ['nullable', 'numeric', 'min:0', Rule::requiredIf($this->status === 'Awarded to Others (loss)')],
-            'partnership_company' => ['nullable', 'string', 'max:255', Rule::requiredIf($this->has_third_party)],
-            'partnership_person'  => ['nullable', 'string', 'max:255', Rule::requiredIf($this->has_third_party)],
-            'partnership_phone'   => ['nullable', 'string', 'max:255', 'regex:/^(?:[9720+])[0-9]{7,12}$/', Rule::requiredIf($this->has_third_party)],
-            'partnership_email'   => ['nullable', 'email', 'max:255', Rule::requiredIf($this->has_third_party)],
-            'partnership_details' => 'nullable|string',
-            'newNoteContent' => 'nullable|string',
+            // ✅✅✅ قواعد التحقق المحدثة للشراكة ✅✅✅
+            'partnerships' => [Rule::requiredIf($this->has_third_party), 'array'],
+            'partnerships.*.company_name' => 'required_with:partnerships|string|max:255',
+            'partnerships.*.person_name' => 'required_with:partnerships|string|max:255',
+            'partnerships.*.phone' => ['required_with:partnerships', 'regex:/^(?:[9720+])[0-9]{7,12}$/'],
+            'partnerships.*.email' => 'required_with:partnerships|email|max:255',
+            'partnerships.*.details' => 'nullable|string',
         ];
 
+        if ($this->mode === 'add') {
+            $rules['newNoteContent'] = 'nullable|string';
+        }
         if ($this->mode === 'edit') {
+            $rules['newNoteContent'] = 'nullable|string';
             $rules['editingNoteContent'] = 'nullable|string';
         }
 
@@ -117,6 +128,12 @@ class OtherTenderPlatform extends Component
     protected $messages = [
         'focalPoints.*.phone.regex' => 'The phone number must be a valid Omani number.',
         'focalPoints.*.email.email' => 'The email must be a valid email address.',
+        'partnerships.required' => 'At least one partner is required when "Yes" is selected.',
+        'partnerships.*.phone.regex' => 'The partner phone number must be a valid Omani number.',
+        'partnerships.*.company_name.required_with' => 'The company name is required.',
+        'partnerships.*.person_name.required_with' => 'The person name is required.',
+        'partnerships.*.phone.required_with' => 'The phone number is required.',
+        'partnerships.*.email.required_with' => 'The email is required.',
     ];
 
     public function updated($propertyName)
@@ -127,13 +144,11 @@ class OtherTenderPlatform extends Component
     public function updatedHasThirdParty($value)
     {
         if (!$value) {
-            $this->reset([
-                'partnership_company',
-                'partnership_person',
-                'partnership_phone',
-                'partnership_email',
-                'partnership_details'
-            ]);
+            $this->partnerships = [];
+        } else {
+            if (empty($this->partnerships)) {
+                $this->addPartnership();
+            }
         }
     }
 
@@ -153,6 +168,22 @@ class OtherTenderPlatform extends Component
         $this->focalPoints = array_values($this->focalPoints);
     }
 
+    public function addPartnership(): void
+    {
+        if (count($this->partnerships) >= 5) {
+            $this->partnershipError = 'You cannot add more than 5 partners.';
+            return;
+        }
+        $this->partnershipError = '';
+        $this->partnerships[] = ['company_name' => '', 'person_name' => '', 'phone' => '', 'email' => '', 'details' => ''];
+    }
+
+    public function removePartnership(int $index): void
+    {
+        unset($this->partnerships[$index]);
+        $this->partnerships = array_values($this->partnerships);
+    }
+
     public function prepareModal(string $mode, ?int $tenderId = null): void
     {
         $this->resetValidation();
@@ -160,7 +191,7 @@ class OtherTenderPlatform extends Component
         $this->mode = $mode;
 
         if ($tenderId) {
-            $this->currentTender = Tender::with(['focalPoints', 'notes' => fn($q) => $q->with('user')->latest()])->findOrFail($tenderId);
+            $this->currentTender = Tender::with(['focalPoints', 'partnerships', 'notes' => fn($q) => $q->with('user')->latest()])->findOrFail($tenderId);
             $this->fillForm($this->currentTender);
             $this->notes = $this->currentTender->notes;
         }
@@ -185,6 +216,7 @@ class OtherTenderPlatform extends Component
         $this->status = 'Recall';
         $this->has_third_party = false;
         $this->focalPoints = [['name' => '', 'phone' => '', 'email' => '', 'department' => '', 'other_info' => '']];
+        $this->partnerships = [];
     }
 
     public function fillForm(Tender $tender): void
@@ -205,12 +237,7 @@ class OtherTenderPlatform extends Component
             'submitted_price',
             'awarded_price',
             'reason_of_recall',
-            'quarter',
-            'partnership_company',
-            'partnership_person',
-            'partnership_phone',
-            'partnership_email',
-            'partnership_details'
+            'quarter'
         ]));
 
         $this->date_of_purchase = $tender->date_of_purchase?->format('Y-m-d');
@@ -219,49 +246,119 @@ class OtherTenderPlatform extends Component
         $this->date_of_submission_after_review = $tender->date_of_submission_after_review?->format('Y-m-d');
         $this->last_follow_up_date = $tender->last_follow_up_date?->format('Y-m-d');
         $this->focalPoints = $tender->focalPoints->toArray();
+        $this->partnerships = $tender->partnerships->toArray();
     }
 
     public function save(): void
     {
+        // الخطوة 1: التحقق من صحة البيانات الأساسية
         $validatedData = $this->validate();
-        $tenderData = collect($validatedData)->except(['focalPoints', 'notes', 'newNoteContent', 'editingNoteContent'])->toArray();
 
+        // --- التحقق من تكرار جهات الاتصال (Focal Points) داخل النموذج نفسه ---
+        if (isset($validatedData['focalPoints'])) {
+            $uniqueFocalPoints = collect($validatedData['focalPoints'])->unique(function ($item) {
+                // نعتبر الإدخال فريداً بناءً على دمج الهاتف والبريد الإلكتروني
+                return strtolower(trim($item['phone'])) . '|' . strtolower(trim($item['email']));
+            });
+
+            if ($uniqueFocalPoints->count() < count($validatedData['focalPoints'])) {
+                $this->addError('focalPoints', 'Duplicate focal point entries found in the form (same phone and email Together). Please remove duplicates.');
+                return; // إيقاف التنفيذ
+            }
+        }
+
+        // --- التحقق من تكرار الشركاء (Partnerships) داخل النموذج نفسه ---
+        if ($this->has_third_party && isset($validatedData['partnerships'])) {
+            $uniquePartnerships = collect($validatedData['partnerships'])->unique(function ($item) {
+                return strtolower(trim($item['company_name']));
+            });
+
+            if ($uniquePartnerships->count() < count($validatedData['partnerships'])) {
+                $this->addError('partnerships', 'Duplicate partnership entries found in the form (same company name). Please remove duplicates.');
+                return; // إيقاف التنفيذ
+            }
+        }
+
+
+        $tenderData = collect($validatedData)->except(['focalPoints', 'partnerships', 'notes', 'newNoteContent', 'editingNoteContent'])->toArray();
+
+        // تنظيف الحقول الشرطية
         if ($this->status !== 'Cancel') $tenderData['reason_of_cancel'] = null;
         if ($this->status !== 'Recall') $tenderData['reason_of_recall'] = null;
         if ($this->status !== 'Under Evaluation') $tenderData['submitted_price'] = null;
         if ($this->status !== 'Awarded to Others (loss)') $tenderData['awarded_price'] = null;
-        if (!$this->has_third_party) {
-            $tenderData['partnership_company'] = null;
-            $tenderData['partnership_person'] = null;
-            $tenderData['partnership_phone'] = null;
-            $tenderData['partnership_email'] = null;
-            $tenderData['partnership_details'] = null;
-        }
 
+        // الخطوة 2: حفظ المناقصة والحصول على الـ ID
         if ($this->mode === 'add') {
             $tender = Tender::create($tenderData);
-            if (!empty($validatedData['focalPoints'])) {
-                $tender->focalPoints()->createMany($validatedData['focalPoints']);
-            }
-            if (!empty($this->newNoteContent)) {
-                $tender->notes()->create(['user_id' => Auth::id(), 'content' => $this->newNoteContent]);
-            }
             session()->flash('message', 'Tender added successfully.');
         } elseif ($this->mode === 'edit' && $this->currentTender) {
             $this->currentTender->update($tenderData);
-            $this->currentTender->focalPoints()->delete();
-            if (!empty($validatedData['focalPoints'])) {
-                $this->currentTender->focalPoints()->createMany($validatedData['focalPoints']);
-            }
+            $tender = $this->currentTender; // استخدام المناقصة الحالية
             session()->flash('message', 'Tender updated successfully.');
+        } else {
+            // حالة غير متوقعة، أوقف التنفيذ
+            return;
         }
 
+        // الخطوة 3: معالجة العلاقات (Focal Points و Partnerships)
+
+        // --- معالجة جهات الاتصال (Focal Points) ---
+        if (isset($validatedData['focalPoints'])) {
+            $newFocalPointsData = collect($validatedData['focalPoints']);
+
+            // حذف جهات الاتصال التي لم تعد موجودة في النموذج
+            $currentFocalPoints = $tender->focalPoints()->get();
+            $phonesAndEmailsToKeep = $newFocalPointsData->map(function ($fp) {
+                return strtolower(trim($fp['phone'])) . '|' . strtolower(trim($fp['email']));
+            });
+
+            foreach ($currentFocalPoints as $existingFp) {
+                $key = strtolower(trim($existingFp->phone)) . '|' . strtolower(trim($existingFp->email));
+                if (!$phonesAndEmailsToKeep->contains($key)) {
+                    $existingFp->delete();
+                }
+            }
+
+            // إضافة أو تحديث جهات الاتصال الجديدة
+            foreach ($newFocalPointsData as $fpData) {
+                $tender->focalPoints()->updateOrCreate(
+                    [
+                        // الشروط: ابحث عن سجل يتطابق فيه الهاتف والإيميل معاً
+                        'phone' => $fpData['phone'],
+                        'email' => $fpData['email'],
+                    ],
+                    $fpData // البيانات: إذا وجدته، قم بتحديثه بهذه البيانات، وإلا قم بإنشائه
+                );
+            }
+        } else {
+            // إذا كانت مصفوفة جهات الاتصال فارغة في النموذج، احذف كل ما هو مرتبط بهذه المناقصة
+            $tender->focalPoints()->delete();
+        }
+
+
+        // --- معالجة الشركاء (Partnerships) ---
+        $tender->partnerships()->delete(); // الطريقة الأبسط: حذف القديم وإضافة الجديد
+        if ($this->has_third_party && !empty($validatedData['partnerships'])) {
+            $tender->partnerships()->createMany($validatedData['partnerships']);
+        }
+
+        // --- معالجة الملاحظات (فقط في وضع الإضافة) ---
+        if ($this->mode === 'add' && !empty($this->newNoteContent)) {
+            $tender->notes()->create(['user_id' => Auth::id(), 'content' => $this->newNoteContent]);
+        }
+
+        //  إغلاق النافذة المنبثقة
         $this->showModal = false;
     }
 
+
+
     private function refreshNotes()
     {
-        $this->notes = $this->currentTender->notes()->with('user')->latest()->get();
+        if ($this->currentTender) {
+            $this->notes = $this->currentTender->notes()->with('user')->latest()->get();
+        }
     }
 
     public function addNote()
@@ -318,7 +415,112 @@ class OtherTenderPlatform extends Component
             $this->resetPage();
         }
     }
-    // ... (exportPdf and exportSimpleExcel) ...
+
+    // pdf
+
+    public function exportPdf()
+    {
+        // 1. تحديد كل الأعمدة التي تحتاجها في الـ PDF
+        $columnsToExport = [
+            'id',
+            'name',
+            'number',
+            'client_type',
+            'client_name',
+            'assigned_to',
+            'date_of_purchase',
+            'date_of_submission',
+            'reviewed_by',
+            'last_date_of_clarification',
+            'submission_by',
+            'date_of_submission_after_review',
+            'has_third_party',
+            'last_follow_up_date',
+            'follow_up_channel',
+            'follow_up_notes',
+            'status',
+            'reason_of_cancel',
+            'submitted_price',
+            'awarded_price',
+            'reason_of_recall' // <-- الأعمدة موجودة هنا بالفعل
+        ];
+
+        // 2. بناء الاستعلام مع تطبيق الفلاتر
+        $query = Tender::query()
+            ->select($columnsToExport)
+            // ... باقي الاستعلام ...
+            ->when($this->clientFilter, fn($q) => $q->where('client_type', 'like', "%{$this->clientFilter}%"));
+
+        // 3. جلب البيانات
+        $tendersToExport = $query->orderBy($this->sortBy, $this->sortDir)->get();
+
+        // 4. تحميل العرض وتمرير البيانات إليه
+        $pdf = Pdf::loadView('livewire.exportfiles.export-pdf', ['tenders' => $tendersToExport]);
+
+        // 5. إرجاع الـ PDF للمستخدم
+        return response()->streamDownload(
+            fn() => print($pdf->output()),
+            'Tenders-Report-' . now()->format('Y-m-d') . '.pdf'
+        );
+    }
+
+    //excel 
+
+    
+    public function exportSimpleExcel()
+    {
+        // 1. تحديد كل الأعمدة التي تحتاجها
+        $columnsToExport = [
+            'id',
+            'name',
+            'number',
+            'client_type',
+            'client_name',
+            'assigned_to',
+            'date_of_purchase',
+            'date_of_submission',
+            'reviewed_by',
+            'last_date_of_clarification',
+            'submission_by',
+            'date_of_submission_after_review',
+            'has_third_party',
+            'last_follow_up_date',
+            'follow_up_channel',
+            'follow_up_notes',
+            'status',
+            'reason_of_cancel',
+            'submitted_price',
+            'awarded_price',
+            'reason_of_recall'
+        ];
+
+        // 2. بناء الاستعلام مع تطبيق الفلاتر
+        $query = Tender::query()
+            ->select($columnsToExport)
+            ->when($this->search, function ($q) {
+                $columns = ['name', 'client_type', 'assigned_to', 'status', 'number'];
+                $q->where(function ($subQuery) use ($columns) {
+                    foreach ($columns as $col) {
+                        $subQuery->orWhere($col, 'like', "%{$this->search}%");
+                    }
+                });
+            })
+            ->when($this->quarterFilter, fn($q) => $q->whereRaw('QUARTER(date_of_submission) = ?', [substr($this->quarterFilter, 1)]))
+            ->when($this->yearFilter, fn($q) => $q->whereYear('date_of_submission', $this->yearFilter))
+            ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter))
+            ->when($this->assignedFilter, fn($q) => $q->where('assigned_to', $this->assignedFilter))
+            ->when($this->clientFilter, fn($q) => $q->where('client_type', 'like', "%{$this->clientFilter}%"));
+
+        // 3. جلب البيانات
+        $tendersToExport = $query->orderBy($this->sortBy, $this->sortDir)->get();
+        // 4.  تحميل عرض Excel وتمرير البيانات إليه
+        $view = view('livewire.exportfiles.exportexcel', ['tenders' => $tendersToExport])->render();
+        $filename = 'Tenders-Report-' . now()->format('Y-m-d') . '.xls';
+
+        // 5. إرجاع الملف للمستخدم
+        return response()->streamDownload(fn() => print($view), $filename);
+    }
+
 
     public function render()
     {
