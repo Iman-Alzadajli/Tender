@@ -8,6 +8,7 @@ use App\Livewire\ETender\ETender;
 use App\Livewire\OtherTenderPlatform\OtherTenderPlatform;
 use App\Livewire\Users\Users;
 use App\Livewire\ContactList\ContactList;
+use App\Livewire\Role\RoleManager;
 
 // صفحة تسجيل الدخول
 Route::get('/', function () {
@@ -32,6 +33,11 @@ Route::middleware('auth')->group(function () {
 
     // Contact List Page
     Route::get('/contact-list', ContactList::class)->name('contact-list');
+
+    // Role Management Page
+    Route::get('/roles', RoleManager::class)->name('roles');
+
+    
 
 
     // Profile Page

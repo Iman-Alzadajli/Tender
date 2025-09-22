@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>TMS</title>
+    <title>TMS</title>
 
     <!-- logo-->
 
@@ -27,7 +27,7 @@
     <!-- Scripts -->
     <!-- @vite(['resources/css/app.css', 'resources/js/app.js']) -->
 
- 
+
 
 
     <!-- Custom CSS -->
@@ -38,8 +38,8 @@
 
 
     @livewireStyles
-    @stack('styles') <!-- hover on cards --> 
-    
+    @stack('styles') <!-- hover on cards -->
+
 </head>
 
 <body>
@@ -96,6 +96,14 @@
                         <span>Contact List</span>
                     </a>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('roles') ? 'active' : '' }}" href="{{ route('roles') }}">
+                        <i class="bi bi-shield-lock"></i>
+                        <span>Roles</span>
+                    </a>
+                </li>
+
             </ul>
 
 
@@ -154,8 +162,8 @@
     <!-- Sidebar Script (app.js)  -->
     <script src="{{ asset('/js/app.js') }}"></script>
 
-    <!-- script of dashboared --> 
-         @stack('scripts')
+    <!-- script of dashboared -->
+    @stack('scripts')
 
 
 
