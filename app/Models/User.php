@@ -8,13 +8,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Auth\Passwords\CanResetPassword; // هذا السطر كان ناقصاً
 use App\Notifications\MyResetPasswordNotification; // استيراد رسالة الإشعار المخصصة
+use Spatie\Permission\Traits\HasRoles; // استيراد Trait HasRoles
 
 
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, CanResetPassword; // إضافة CanResetPassword
+    use HasFactory, Notifiable, CanResetPassword, HasRoles; // إضافة CanResetPassword
 
     /**
      * The attributes that are mass assignable.
