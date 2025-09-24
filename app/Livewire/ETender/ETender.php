@@ -531,7 +531,13 @@ class ETender extends Component
         if ($this->clientFilter) $query->where("client_type", "like", "%{$this->clientFilter}%");
         if ($this->yearFilter) $query->whereYear("date_of_submission", $this->yearFilter);
 
-        $tenders = $query->orderBy($this->sortBy, $this->sortDir)->paginate(5);
+        $sortColumn = $this->sortBy;
+        if ($this->sortBy === 'quarter_sort') {
+            $sortColumn = 'date_of_submission';
+        }
+        $tenders = $query->orderBy($sortColumn, $this->sortDir)->paginate(5);
+
+
         $uniqueClients = Tender::select("client_type")->whereNotNull("client_type")->distinct()->pluck("client_type");
         $uniqueAssignees = Tender::select("assigned_to")->whereNotNull("assigned_to")->distinct()->pluck("assigned_to");
         $uniqueYears = Tender::selectRaw('YEAR(date_of_submission) as year')->distinct()->orderBy('year', 'desc')->pluck('year');

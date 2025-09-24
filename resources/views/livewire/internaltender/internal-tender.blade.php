@@ -91,7 +91,14 @@
                         <th wire:click="setSortBy('client_name')" style="cursor: pointer;">Client Name @if($sortBy === 'client_name')<i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>@endif</th>
                         <th wire:click="setSortBy('assigned_to')" style="cursor: pointer;">Assigned To @if($sortBy === 'assigned_to')<i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>@endif</th>
                         <th wire:click="setSortBy('date_of_submission')" style="cursor: pointer;">Submission Date @if($sortBy === 'date_of_submission')<i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>@endif</th>
-                        <th>Quarter</th>
+                        <th wire:click="setSortBy('quarter_sort')" style="cursor: pointer;">
+                            Quarter
+                            {{-- ✅ الشرط الآن يتحقق من 'quarter_sort' --}}
+                            @if($sortBy === 'quarter_sort')
+                            <i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>
+                            @endif
+                        </th>
+
                         <th wire:click="setSortBy('status')" style="cursor: pointer;">Status @if($sortBy === 'status')<i class="bi bi-arrow-{{ $sortDir === 'ASC' ? 'up' : 'down' }}"></i>@endif</th>
                         <th>Actions</th>
                     </tr>

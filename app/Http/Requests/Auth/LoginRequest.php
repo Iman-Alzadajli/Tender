@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
 
 class LoginRequest extends FormRequest
 {
@@ -45,13 +46,23 @@ class LoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'password' => trans('Incorrect Email or Password...Please try again'),
-                
+                'email' => trans('auth.failed'),
+            ]);
+        }
+
+        $user = Auth::user(); // احصل على بيانات المستخدم الذي نجح في تسجيل الدخول
+        if ($user->status !== 'active') {
+            Auth::logout(); // إذا لم يكن "active"، قم بتسجيل خروجه فورًا
+
+            // أرسل رسالة خطأ مخصصة
+            throw ValidationException::withMessages([
+                'email' => 'Your account is inactive. Please contact support.',
             ]);
         }
 
         RateLimiter::clear($this->throttleKey());
     }
+
 
     /**
      * Ensure the login request is not rate limited.
@@ -81,6 +92,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('email')) . '|' . $this->ip());
     }
 }

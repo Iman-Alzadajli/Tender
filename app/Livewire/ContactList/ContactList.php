@@ -387,7 +387,7 @@ class ContactList extends Component
         $sortedContacts = $flatContacts->sortBy('tender_name')->values();
 
         // 4. ✅ تحميل عرض Excel وتمرير البيانات
-        $view = view('livewire.exportfiles.exportexcel', ['contacts' => $sortedContacts])->render();
+        $view = view('livewire.exportfiles.exportexcel', ['tenders' => $sortedContacts])->render();
         $filename = 'Detailed-Contact-Report-' . now()->format('Y-m-d') . '.xls';
 
         return response()->streamDownload(fn() => print($view), $filename);

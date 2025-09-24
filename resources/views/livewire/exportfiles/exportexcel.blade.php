@@ -1,63 +1,52 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="UTF-8">
-    <title>Tenders Export</title>
-    <link rel="stylesheet" href="{{ asset('/css/excel.css') }}">
+    <title>Contacts Export</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #dddddd; text-align: left; padding: 8px; }
+        thead { background-color: #f2f2f2; }
+    </style>
 </head>
-
 <body>
     <table>
         <thead>
             <tr>
-                {{-- نفس الأعمدة الموجودة في ملف الـ PDF المحدث --}}
-                <th>ID</th>
-                <th>Name</th>
-                <th>Number</th>
-                <th>Client Type</th>
+                {{-- هذه هي الأعمدة الصحيحة لبيانات جهات الاتصال --}}
+                <th>Tender Name</th>
                 <th>Client Name</th>
-                <th>Assigned To</th>
-                <th>Purchase Date</th>
-                <th>Submission Date</th>
-                <th>Reviewed by</th>
-                <th>Last Date of Clarification</th>
-                <th>3rd Party?</th>
-                <th>Status</th>
-                <th>Submitted Price</th>
-                <th>Awarded Price</th>
-                <th>Reason of Recall</th>
-                <th>Reason of Cancel</th>
+                <th>Tender Type</th>
+                <th>Contact Type</th>
+                <th>Contact/Company Name</th>
+                <th>Person Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Details</th>
             </tr>
         </thead>
         <tbody>
-            {{-- ✅✅✅ تم تصحيح اسم المتغير إلى $tenders ✅✅✅ --}}
-            @forelse($tenders as $tender)
+            {{-- ✅ نستخدم متغير 'tenders' الذي ترسله الدالة --}}
+            @forelse($tenders as $contact)
             <tr>
-                <td>{{ $tender->id }}</td>
-                <td>{{ $tender->name ?? '' }}</td>
-                <td>{{ $tender->number ?? '' }}</td>
-                <td>{{ $tender->client_type ?? '' }}</td>
-                <td>{{ $tender->client_name ?? '' }}</td>
-                <td>{{ $tender->assigned_to ?? '' }}</td>
-                <td>{{ $tender->date_of_purchase ? $tender->date_of_purchase->format('Y-m-d') : '' }}</td>
-                <td>{{ $tender->date_of_submission ? $tender->date_of_submission->format('Y-m-d') : '' }}</td>
-                <td>{{ $tender->reviewed_by ?? '' }}</td>
-                <td>{{ $tender->last_date_of_clarification ? $tender->last_date_of_clarification->format('Y-m-d') : '' }}</td>
-                <td>{{ $tender->has_third_party ? 'Yes' : 'No' }}</td>
-                <td>{{ $tender->status ?? '' }}</td>
-                <td>{{ $tender->submitted_price ?? '' }}</td>
-                <td>{{ $tender->awarded_price ?? '' }}</td>
-                <td>{{ $tender->reason_of_recall ?? '' }}</td>
-                <td>{{ $tender->reason_of_cancel ?? '' }}</td>
+                <td>{{ $contact->tender_name ?? '' }}</td>
+                <td>{{ $contact->client_name ?? '' }}</td>
+                <td>{{ $contact->tender_type ? str_replace('_', ' ', $contact->tender_type) : '' }}</td>
+                <td>{{ $contact->contact_type ?? '' }}</td>
+                <td>{{ $contact->contact_name ?? '' }}</td>
+                <td>{{ $contact->person_name ?? '' }}</td>
+                <td>{{ $contact->phone ?? '' }}</td>
+                <td>{{ $contact->email ?? '' }}</td>
+                <td>{{ $contact->department ?? '' }}</td>
+                <td>{{ $contact->details ?? '' }}</td>
             </tr>
             @empty
             <tr>
-                <td colspan="16">No tenders found for the selected criteria.</td>
+                <td colspan="10">No contacts found for the selected criteria.</td>
             </tr>
             @endforelse
         </tbody>
     </table>
 </body>
-
 </html>
