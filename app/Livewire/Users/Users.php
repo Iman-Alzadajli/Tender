@@ -95,7 +95,7 @@ class Users extends Component
         $this->resetForm();
         $this->isEditMode = true;
         $this->editingUserId = $userId;
-        
+
         $user = User::find($userId);
         if ($user) {
             $this->name = $user->name;
@@ -108,8 +108,16 @@ class Users extends Component
 
     public function updateUser()
     {
-        if (!$this->editingUserId) return;
+      
+        // الخطوة 1: التحقق من الأمان أولاً
+        if (!$this->editingUserId || $this->editingUserId === Auth::id()) {
+            session()->flash('error', 'You cannot edit your own account from this panel.');
+            $this->showModal = false; // أغلق النافذة المنبثقة
+            return; // أوقف التنفيذ هنا
+        }
+     
 
+        // الخطوة 2: إذا مر التحقق، استمر في منطق التحديث
         $validated = $this->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $this->editingUserId,
@@ -170,6 +178,7 @@ class Users extends Component
         $this->resetForm();
     }
 
+
     /**
      * دالة العرض الرئيسية.
      */
@@ -202,7 +211,7 @@ class Users extends Component
             $perPage = 10;
             $currentPage = LengthAwarePaginator::resolveCurrentPage();
             $currentPageItems = $sortedUsers->slice(($currentPage - 1) * $perPage, $perPage);
-            
+
             $users = new LengthAwarePaginator($currentPageItems, $sortedUsers->count(), $perPage, $currentPage, [
                 'path' => LengthAwarePaginator::resolveCurrentPath(),
             ]);
