@@ -69,13 +69,7 @@
                 </button>
             </div>
 
-            <!-- Centered Sign-up Link -->
-            <!-- <div class="text-center mt-4">
-                <a class="signup-link text-decoration-none" href="{{ route('register') }}">
-                    Sign-up
-                </a>
-            </div> -->
-
+      
 
 
         </form>

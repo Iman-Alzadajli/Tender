@@ -5,7 +5,7 @@
     </div>
 
     <div class="auth-body">
-        <form method="POST" action="{{ route('register') }}">
+        <!-- <form method="POST" action="{{ route('register') }}"> -->
             @csrf
 
             <!-- Name -->
