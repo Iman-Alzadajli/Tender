@@ -58,51 +58,73 @@
 
         <nav class="sidebar-nav">
             <ul class="nav flex-column">
+
+                @can('dashboard.view')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                         <i class="bi bi-speedometer2"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
+                @endcan
+
+                @can('internal-tenders.view')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('internal-tender') ? 'active' : '' }}" href="{{ route('internal-tender') }}">
                         <i class="bi bi-building"></i>
                         <span>Internal Tender</span>
                     </a>
                 </li>
+                @endcan
+
+
+
+                @can('e-tenders.view')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('e-tender') ? 'active' : '' }}" href="{{ route('e-tender') }}">
-                        <i class="bi bi-globe"></i>
+                        <i class="bi bi-display"></i>
                         <span>E-Tender</span>
                     </a>
                 </li>
+                @endcan
+
+
+                @can('other-tenders.view')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('other-tender-platform') ? 'active' : '' }}" href="{{ route('other-tender-platform') }}">
                         <i class="bi bi-collection"></i>
                         <span>Other Platforms</span>
                     </a>
                 </li>
+                @endcan
 
+                @can('users.view')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('users') ? 'active' : '' }}" href="{{ route('users') }}">
                         <i class="bi bi-people"></i>
                         <span>Users</span>
                     </a>
                 </li>
+                @endcan
 
+                @can('contact-list.view')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('contact-list') ? 'active' : '' }}" href="{{ route('contact-list') }}">
                         <i class="bi-card-list"></i>
                         <span>Contact List</span>
                     </a>
                 </li>
+                @endcan
 
+                @can('roles.view')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('roles') ? 'active' : '' }}" href="{{ route('roles') }}">
                         <i class="bi bi-shield-lock"></i>
                         <span>Roles</span>
                     </a>
                 </li>
+                @endcan
+
 
             </ul>
 
@@ -160,7 +182,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Sidebar Script (app.js)  -->
-    <script src="{{ asset('/js/app.js') }}"></script>
+    <!-- <script src="{{ asset('/js/app.js') }}"></script> -->
 
     <!-- script of dashboared -->
     @stack('scripts')
@@ -168,6 +190,19 @@
 
 
     @livewireScripts
+
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
+
+    <!-- الخطوة 2: تفعيل الإضافات (داخل وسم script ) -->
+    <script>
+        dayjs.extend(window.dayjs_plugin_utc);
+        dayjs.extend(window.dayjs_plugin_timezone);
+    </script>
+
+    <!-- الخطوة 3: تحميل ملف app.js الخاص بك (مرة واحدة فقط وفي المكان الصحيح) -->
+    <script src="{{ asset('/js/app.js') }}"></script>
 </body>
 
 </html>

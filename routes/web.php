@@ -19,25 +19,37 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
 
     // Dashboard
-  Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware('auth')->name('dashboard');
+    //   Route::get('/dashboard', function () {
+    //     return view('dashboard');
+    // })->middleware('auth')->name('dashboard');
+
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->middleware(['auth', 'can:dashboard.view'])->name('dashboard');
 
     // Tender Pages
-    Route::get('/internal-tender', InternalTender::class)->name('internal-tender');
-    Route::get('/e-tender', ETender::class)->name('e-tender');
-    Route::get('/other-tender-platform', OtherTenderPlatform::class)->name('other-tender-platform');
+    // Route::get('/internal-tender', InternalTender::class)->name('internal-tender');
+    Route::get('/internal-tender', InternalTender::class)->middleware('can:internal-tenders.view')->name('internal-tender');
+
+
+    Route::get('/e-tender', ETender::class)->name('e-tender')->middleware('can:e-tenders.view');
+
+    Route::get('/other-tender-platform', OtherTenderPlatform::class)->name('other-tender-platform')->middleware('can:other-tenders.view');
+
 
     // Users Page
-    Route::get('/users', Users::class)->name('users');
+    Route::get('/users', Users::class)->middleware('can:users.view')->name('users');
+
 
     // Contact List Page
-    Route::get('/contact-list', ContactList::class)->name('contact-list');
-
+    Route::get('/contact-list', ContactList::class)->name('contact-list')->middleware('can:contact-list.view');
     // Role Management Page
-    Route::get('/roles', RoleManager::class)->name('roles');
+    // Route::get('/roles', RoleManager::class)->name('roles');
+    // أضف middleware الحماية هنا
+    Route::get('/roles', RoleManager::class)->middleware('can:roles.view')->name('roles');
 
-    
+
+
 
 
     // Profile Page

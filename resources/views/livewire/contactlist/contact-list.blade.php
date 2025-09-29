@@ -24,23 +24,23 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+
                 <div class="d-flex gap-2">
-                    {{-- أزرار التصدير معطلة مؤقتاً لأنها تحتاج تحديث --}}
-                    <button wire:click="exportPdf" class="btn btn-danger">
+                    <button wire:click="exportPdf" class="btn btn-danger" @cannot('contact-list.export') disabled @endcannot>
                         <div wire:loading wire:target="exportPdf" class="spinner-border spinner-border-sm" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
                         <i class="bi bi-file-earmark-pdf-fill me-2"></i>Export PDF
                     </button>
 
-                    <button wire:click="exportExcel" class="btn btn-success">
+                    <button wire:click="exportExcel" class="btn btn-success" @cannot('contact-list.export') disabled @endcannot>
                         <div wire:loading wire:target="exportExcel" class="spinner-border spinner-border-sm" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
                         <i class="bi bi-file-earmark-excel-fill me-2"></i>Export Excel
                     </button>
-                    
                 </div>
+
                 <div class="d-flex flex-column flex-md-row gap-2 flex-grow-1 justify-content-end">
                     <div class="input-group" style="max-width: 350px;">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -116,14 +116,15 @@
                         </td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
-                                <button class="btn btn-sm btn-custom-focal" wire:click="prepareFocalPointModal('{{ $tender->tender_type }}', {{ $tender->id }})">
+                                <button class="btn btn-sm btn-custom-focal" wire:click="prepareFocalPointModal('{{ $tender->tender_type }}', {{ $tender->id }})" @cannot('contact-list.add-focal-point') disabled @endcannot>
                                     <i class="bi bi-person-plus"></i> Add Focal Point
                                 </button>
-                                <button class="btn btn-sm btn-custom-partner" wire:click="preparePartnershipModal('{{ $tender->tender_type }}', {{ $tender->id }})">
+                                <button class="btn btn-sm btn-custom-partner" wire:click="preparePartnershipModal('{{ $tender->tender_type }}', {{ $tender->id }})" @cannot('contact-list.add-partnership') disabled @endcannot>
                                     <i class="bi bi-building-add"></i> Add Partnership
                                 </button>
                             </div>
                         </td>
+
                     </tr>
                     <tr x-show="open" style="display: none;">
                         <td colspan="6" class="p-0 bg-light">

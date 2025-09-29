@@ -15,11 +15,11 @@
         </div>
 
         {{-- زر إضافة دور جديد --}}
-        <div class="text-end">
-            <button wire:click="openModal" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-2"></i>Add Role
-            </button>
-        </div>
+        @can('roles.create')
+        <button wire:click="openModal" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Add Role
+        </button>
+        @endcan
     </div>
 
     {{-- Role Cards --}}
@@ -32,24 +32,32 @@
                         <h5 class="card-title fw-bold">{{ $role->name }}</h5>
 
                         {{-- Dropdown for Edit/Delete --}}
+                        @if ($role->name !== 'Super-Admin' && (auth()->user()->can('roles.edit') || auth()->user()->can('roles.delete')))
                         <div class="dropdown">
                             <button class="btn btn-link text-secondary p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-three-dots-vertical"></i>
                             </button>
                             <ul class="dropdown-menu">
+                                {{-- يظهر فقط لمن يملك صلاحية التعديل --}}
+                                @can('roles.edit')
                                 <li>
                                     <a class="dropdown-item" href="#" wire:click.prevent="editRole({{ $role->id }})">
                                         <i class="bi bi-pencil-square me-2"></i>Edit
                                     </a>
                                 </li>
+                                @endcan
 
+                                {{-- يظهر فقط لمن يملك صلاحية الحذف --}}
+                                @can('roles.delete')
                                 <li>
                                     <a class="dropdown-item text-danger" href="#" wire:click.prevent="confirmDelete({{ $role->id }})">
                                         <i class="bi bi-trash-fill me-2"></i>Delete
                                     </a>
                                 </li>
+                                @endcan
                             </ul>
                         </div>
+                        @endif
                     </div>
 
                     <p class="card-text text-muted small flex-grow-1">{{ $role->description ?? 'No description provided.' }}</p>
@@ -125,15 +133,18 @@
                             </div>
 
                             {{-- Permissions Accordion --}}
-                            <h6 class="mb-3">Permissions ({{ count($selectedPermissions) }} selected)</h6>
-                            @error('selectedPermissions') <div class="alert alert-danger p-2 mb-3">{{ $message }}</div> @enderror
-
-                            {{-- Add wire:ignore to the accordion itself --}}
                             <div class="accordion" id="permissionsAccordion" wire:ignore>
                                 @foreach ($permissionGroups as $groupName => $permissions)
                                 <div class="accordion-item">
                                     <h2 class="accordion-header" id="heading-{{ $loop->index }}">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ $loop->index }}">
+                                        <button class="accordion-button collapsed"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#collapse-{{ $loop->index }}"
+                                            @if ($groupName==='roles' && !auth()->user()->hasRole('Super-Admin'))
+                                            disabled
+                                            @endif
+                                            >
                                             {{ Str::title(str_replace('-', ' ', $groupName)) }} Management
                                         </button>
                                     </h2>
@@ -149,25 +160,25 @@
                                                 </div>
                                                 @endforeach
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                        </div> {{-- نهاية .accordion-body --}}
+                                    </div> {{-- نهاية .accordion-collapse --}}
+                                </div> {{-- نهاية .accordion-item --}}
                                 @endforeach
                             </div>
-                        </div>
-                        <div class="modal-footer">
 
-                            <button type="submit" class="btn btn-primary">
-                                @if ($isEditMode)
-                                <span wire:loading.remove wire:target="updateRole">Update Role</span>
-                                <span wire:loading wire:target="updateRole">Updating...</span>
-                                @else
-                                <span wire:loading.remove wire:target="storeRole">Create Role</span>
-                                <span wire:loading wire:target="storeRole">Creating...</span>
-                                @endif
-                            </button>
+                            <div class="modal-footer">
 
-                        </div>
+                                <button type="submit" class="btn btn-primary">
+                                    @if ($isEditMode)
+                                    <span wire:loading.remove wire:target="updateRole">Update Role</span>
+                                    <span wire:loading wire:target="updateRole">Updating...</span>
+                                    @else
+                                    <span wire:loading.remove wire:target="storeRole">Create Role</span>
+                                    <span wire:loading wire:target="storeRole">Creating...</span>
+                                    @endif
+                                </button>
+
+                            </div>
                     </form>
                 </div>
             </div>

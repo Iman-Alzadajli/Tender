@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Pagination\LengthAwarePaginator; // ✅✅✅ الخطوة 1: استيراد الكلاس الجديد ✅✅✅
 use Illuminate\Support\Collection; // ✅✅✅ استيراد الكلاس الجديد ✅✅✅
+use Illuminate\Support\Facades\Gate;
+
 
 #[Layout('layouts.app', ['header' => 'Users List'])]
 class Users extends Component
@@ -67,6 +69,7 @@ class Users extends Component
 
     public function storeUser()
     {
+        $this->authorize('users.create'); // للإنشاء فقط
         $validated = $this->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
@@ -108,14 +111,16 @@ class Users extends Component
 
     public function updateUser()
     {
-      
+        $this->authorize('users.edit'); // للتحديث فقط
+
+
         // الخطوة 1: التحقق من الأمان أولاً
         if (!$this->editingUserId || $this->editingUserId === Auth::id()) {
             session()->flash('error', 'You cannot edit your own account from this panel.');
             $this->showModal = false; // أغلق النافذة المنبثقة
             return; // أوقف التنفيذ هنا
         }
-     
+
 
         // الخطوة 2: إذا مر التحقق، استمر في منطق التحديث
         $validated = $this->validate([
@@ -137,15 +142,17 @@ class Users extends Component
             session()->flash('message', 'User updated successfully.');
         }
     }
-
     public function confirmDelete($userId)
     {
         $this->deletingUserId = $userId;
         $this->showDeleteModal = true;
     }
 
+
+    
     public function deleteUser()
     {
+        $this->authorize('users.delete'); // للتسحيل فقط
         $user = User::find($this->deletingUserId);
 
         if (!$user) {
@@ -184,7 +191,8 @@ class Users extends Component
      */
     public function render()
     {
-        // ✅✅✅ الكود المصحح والنهائي لمشكلة الترقيم ✅✅✅
+        $this->authorize('users.view');
+
 
         // الخطوة 1: بناء الاستعلام الأساسي مع البحث
         $usersQuery = User::query()

@@ -143,9 +143,15 @@ class OtherTenderPlatform extends Component
 
     public function updatedHasThirdParty($value)
     {
+        // ✅ الخطوة 1: التحقق من الصلاحية أولاً
+        // إذا لم يكن لدى المستخدم الصلاحية، سيتم إيقاف التنفيذ وإظهار خطأ "Unauthorized".
+        $this->authorize('other-tenders.manage-partnerships');
+
+        // الخطوة 2: تنفيذ المنطق البرمجي فقط إذا نجح التحقق
         if (!$value) {
             $this->partnerships = [];
         } else {
+            // عند التغيير إلى "نعم"، يتم إضافة حقل شريك جديد تلقائياً
             if (empty($this->partnerships)) {
                 $this->addPartnership();
             }
@@ -154,6 +160,8 @@ class OtherTenderPlatform extends Component
 
     public function addFocalPoint(): void
     {
+        $this->authorize('other-tenders.manage-focal-points');
+
         if (count($this->focalPoints) >= 5) {
             $this->focalPointError = 'You cannot add more than 5 focal points.';
             return;
@@ -164,12 +172,18 @@ class OtherTenderPlatform extends Component
 
     public function removeFocalPoint(int $index): void
     {
+        // ✅ التحقق من الصلاحية موجود بالفعل هنا
+        $this->authorize('other-tenders.manage-focal-points');
+
         unset($this->focalPoints[$index]);
         $this->focalPoints = array_values($this->focalPoints);
     }
 
+
     public function addPartnership(): void
     {
+        $this->authorize('other-tenders.manage-partnerships');
+
         if (count($this->partnerships) >= 5) {
             $this->partnershipError = 'You cannot add more than 5 partners.';
             return;
@@ -180,20 +194,39 @@ class OtherTenderPlatform extends Component
 
     public function removePartnership(int $index): void
     {
+        // ✅ التحقق من الصلاحية موجود بالفعل هنا
+        $this->authorize('other-tenders.manage-partnerships');
+
         unset($this->partnerships[$index]);
         $this->partnerships = array_values($this->partnerships);
     }
 
+
     public function prepareModal(string $mode, ?int $tenderId = null): void
     {
+        if ($mode === 'add') {
+            $this->authorize('other-tenders.create');
+        }
+        if ($mode === 'edit') {
+            $this->authorize('other-tenders.edit');
+        }
         $this->resetValidation();
         $this->resetForm();
         $this->mode = $mode;
 
         if ($tenderId) {
-            $this->currentTender = Tender::with(['focalPoints', 'partnerships', 'notes' => fn($q) => $q->with('user')->latest()])->findOrFail($tenderId);
+            // الخطوة 1: جلب المناقصة والعلاقات البسيطة (بدون الملاحظات)
+            $this->currentTender = Tender::with(['focalPoints', 'partnerships'])->findOrFail($tenderId);
             $this->fillForm($this->currentTender);
-            $this->notes = $this->currentTender->notes;
+
+            // ▼▼▼ هذا هو التعديل الأهم ▼▼▼
+            // الخطوة 2: جلب الملاحظات في استعلام منفصل ومباشر
+            // هذا يضمن أن العلاقات 'user' و 'editor' يتم تحميلها بشكل صحيح ومستقر
+            $this->notes = $this->currentTender->notes()
+                ->with(['user', 'editor'])
+                ->latest()
+                ->get();
+            // ▲▲▲ نهاية التعديل ▲▲▲
         }
 
         $this->showModal = true;
@@ -251,6 +284,11 @@ class OtherTenderPlatform extends Component
 
     public function save(): void
     {
+        if ($this->mode === 'add') {
+            $this->authorize('other-tenders.create');
+        } else {
+            $this->authorize('other-tenders.edit');
+        }
         // الخطوة 1: التحقق من صحة البيانات الأساسية
         $validatedData = $this->validate();
 
@@ -363,6 +401,8 @@ class OtherTenderPlatform extends Component
 
     public function addNote()
     {
+        $this->authorize('other-tenders.manage-notes');
+
         $this->validate(['newNoteContent' => 'required|string']);
         if ($this->currentTender) {
             $this->currentTender->notes()->create(['user_id' => Auth::id(), 'content' => $this->newNoteContent]);
@@ -371,23 +411,48 @@ class OtherTenderPlatform extends Component
         }
     }
 
+
     public function editNote(int $noteId)
     {
+        $this->authorize('other-tenders.manage-notes');
+
         $note = TenderNote::findOrFail($noteId);
         $this->authorize('update', $note);
         $this->editingNoteId = $note->id;
         $this->editingNoteContent = $note->content;
     }
 
+    // In app/Livewire/OtherTenderPlatform/OtherTenderPlatform.php
+
     public function updateNote(int $noteId)
     {
+        $this->authorize('other-tenders.manage-notes');
         $note = TenderNote::findOrFail($noteId);
         $this->authorize('update', $note);
         $this->validate(['editingNoteContent' => 'required|string']);
-        $note->update(['content' => $this->editingNoteContent]);
+
+        // ▼▼▼ المنطق الجديد والمهم يبدأ هنا ▼▼▼
+        $updateData = ['content' => $this->editingNoteContent];
+        $currentUser = Auth::user();
+
+        // تحقق إذا كان المستخدم الحالي ليس هو الناشر الأصلي
+        if ($currentUser->id !== $note->user_id) {
+            // إذا كان شخصاً آخر (Super-Admin)، سجل هويته في حقل المُعدِّل
+            $updateData['edited_by_id'] = $currentUser->id;
+        } else {
+            // إذا كان المالك الأصلي هو من يعدل، تأكد من أن حقل المُعدِّل يبقى فارغاً
+            // هذا يحل مشكلة لو قام المدير بالتعديل ثم قام المالك بالتعديل بعده
+            $updateData['edited_by_id'] = null;
+        }
+
+        // نفذ التحديث. حقل user_id الأصلي لن يتغير أبداً
+        $note->update($updateData);
+        // ▲▲▲ نهاية المنطق الجديد ▲▲▲
+
         $this->cancelEdit();
         $this->refreshNotes();
     }
+
 
     public function cancelEdit()
     {
@@ -397,6 +462,8 @@ class OtherTenderPlatform extends Component
 
     public function deleteNote(int $noteId)
     {
+        $this->authorize('other-tenders.manage-notes');
+
         $note = TenderNote::findOrFail($noteId);
         $this->authorize('delete', $note);
         $note->delete();
@@ -405,6 +472,8 @@ class OtherTenderPlatform extends Component
 
     public function deleteTender(int $tenderId): void
     {
+        $this->authorize('other-tenders.delete');
+
         Tender::find($tenderId)?->delete();
         session()->flash('message', 'Tender deleted successfully.');
     }
@@ -420,6 +489,7 @@ class OtherTenderPlatform extends Component
 
     public function exportPdf()
     {
+        $this->authorize('other-tenders.export');
         // 1. تحديد كل الأعمدة التي تحتاجها في الـ PDF
         $columnsToExport = [
             'id',
@@ -469,6 +539,7 @@ class OtherTenderPlatform extends Component
 
     public function exportSimpleExcel()
     {
+        $this->authorize('other-tenders.export');
         // 1. تحديد كل الأعمدة التي تحتاجها
         $columnsToExport = [
             'id',
@@ -524,6 +595,7 @@ class OtherTenderPlatform extends Component
 
     public function render()
     {
+        $this->authorize('other-tenders.view');
         $query = Tender::query();
         if ($this->search) {
             $query->where(function ($q) {

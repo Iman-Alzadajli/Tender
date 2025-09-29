@@ -24,11 +24,15 @@
             <span class="input-group-text"><i class="bi bi-search"></i></span>
             <input wire:model.live.debounce.300ms="search" type="text" class="form-control" placeholder="Search by name, email, or role...">
         </div>
+
         <div class="text-end">
-            <button wire:click="addUser" class="btn btn-primary">
+            <button wire:click="addUser"
+                class="btn btn-primary"
+                @cannot('users.create') disabled @endcannot>
                 <i class="bi bi-plus-lg me-2"></i>Add User
             </button>
         </div>
+
     </div>
 
     {{-- Users Table --}}
@@ -68,7 +72,7 @@
                 <tbody>
                     @forelse ($users as $user)
                     <tr wire:key="{{ $user->id }}">
-                        {{-- ✅✅✅ تم فصل الاسم والبريد الإلكتروني ✅✅✅ --}}
+
                         <td>{{ $user->name }}</td>
                         <td>{{ $user->email }}</td>
                         <td>
@@ -88,16 +92,36 @@
                         <td>{{ $user->last_login_at ? $user->last_login_at->diffForHumans() : 'Never' }}</td>
                         <td>{{ $user->created_at->format('d M, Y') }}</td>
                         <td>
-                            
+
                             <div class="btn-group">
                                 @if (Auth::id() === $user->id)
                                 {{-- إذا كان هو المستخدم الحالي، اعرض الأزرار معطلة --}}
                                 <button class="btn btn-sm btn-outline-primary" title="Edit" disabled><i class="bi bi-pencil-square"></i></button>
                                 <button class="btn btn-sm btn-outline-danger" title="Delete" disabled><i class="bi bi-trash-fill"></i></button>
                                 @else
-                                {{-- وإلا، اعرض الأزرار بشكل طبيعي --}}
-                                <button wire:click="editUser({{ $user->id }})" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil-square"></i></button>
-                                <button wire:click="confirmDelete({{ $user->id }})" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash-fill"></i></button>
+                                <button wire:click="editUser({{ $user->id }})"
+                                    class="btn btn-sm btn-outline-primary"
+                                    title="Edit"
+                                    @if(Auth::id()===$user->id)
+                                    disabled
+                                    @else
+                                    @cannot('users.edit') disabled @endcannot
+                                    @endif>
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+
+                                <button wire:click="confirmDelete({{ $user->id }})"
+                                    class="btn btn-sm btn-outline-danger"
+                                    title="Delete"
+                                    @if(Auth::id()===$user->id)
+                                    disabled
+                                    @else
+                                    @cannot('users.delete') disabled @endcannot
+                                    @endif>
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+
+
                                 @endif
                             </div>
 

@@ -122,6 +122,8 @@ class Dashboard extends Component
 
     public function updatedHasThirdParty($value)
     {
+        $this->authorize('dashboard.manage-partnerships');
+
         if (!$value) {
             $this->partnerships = [];
         } elseif (empty($this->partnerships)) {
@@ -141,6 +143,9 @@ class Dashboard extends Component
 
     public function showTender($type, $id, $editMode = false)
     {
+        $permission = $editMode ? 'dashboard.edit-tender' : 'dashboard.view';
+        $this->authorize($permission);
+
         $this->resetValidation();
         $this->resetForm();
         $this->tenderId = $id;
@@ -197,6 +202,8 @@ class Dashboard extends Component
 
     public function saveTender()
     {
+        $this->authorize('dashboard.edit-tender');
+
         $validatedData = $this->validate();
 
         // التحقق من التكرار داخل النموذج
@@ -256,6 +263,8 @@ class Dashboard extends Component
 
     public function deleteTender($type, $id)
     {
+        $this->authorize('dashboard.delete-tender');
+
         $modelClass = $this->getModelClassForType($type);
         if ($modelClass) {
             $modelClass::find($id)?->delete();
@@ -265,6 +274,8 @@ class Dashboard extends Component
 
     public function addFocalPoint(): void
     {
+        $this->authorize('dashboard.manage-focal-points');
+
         if (count($this->focalPoints) >= 5) {
             $this->focalPointError = 'You cannot add more than 5 focal points.';
             return;
@@ -275,12 +286,16 @@ class Dashboard extends Component
 
     public function removeFocalPoint(int $index): void
     {
+        $this->authorize('dashboard.manage-focal-points');
+
         unset($this->focalPoints[$index]);
         $this->focalPoints = array_values($this->focalPoints);
     }
 
     public function addPartnership(): void
     {
+        $this->authorize('dashboard.manage-partnerships');
+
         if (count($this->partnerships) >= 5) {
             $this->partnershipError = 'You cannot add more than 5 partners.';
             return;
@@ -291,6 +306,8 @@ class Dashboard extends Component
 
     public function removePartnership(int $index): void
     {
+        $this->authorize('dashboard.manage-partnerships');
+
         unset($this->partnerships[$index]);
         $this->partnerships = array_values($this->partnerships);
     }
@@ -304,6 +321,7 @@ class Dashboard extends Component
 
     public function addNote()
     {
+        $this->authorize('dashboard.manage-notes');
         $this->validate(['newNoteContent' => 'required|string']);
         if ($this->currentTender) {
             $this->currentTender->notes()->create(['user_id' => Auth::id(), 'content' => $this->newNoteContent]);
@@ -314,6 +332,7 @@ class Dashboard extends Component
 
     public function editNote(int $noteId)
     {
+        $this->authorize('dashboard.manage-notes');
         $note = TenderNote::findOrFail($noteId);
         $this->authorize('update', $note);
         $this->editingNoteId = $note->id;
@@ -322,13 +341,34 @@ class Dashboard extends Component
 
     public function updateNote(int $noteId)
     {
+        $this->authorize('dashboard.manage-notes');
+        $this->authorize('other-tenders.manage-notes');
         $note = TenderNote::findOrFail($noteId);
         $this->authorize('update', $note);
         $this->validate(['editingNoteContent' => 'required|string']);
-        $note->update(['content' => $this->editingNoteContent]);
+
+        // ▼▼▼ المنطق الجديد والمهم يبدأ هنا ▼▼▼
+        $updateData = ['content' => $this->editingNoteContent];
+        $currentUser = Auth::user();
+
+        // تحقق إذا كان المستخدم الحالي ليس هو الناشر الأصلي
+        if ($currentUser->id !== $note->user_id) {
+            // إذا كان شخصاً آخر (Super-Admin)، سجل هويته في حقل المُعدِّل
+            $updateData['edited_by_id'] = $currentUser->id;
+        } else {
+            // إذا كان المالك الأصلي هو من يعدل، تأكد من أن حقل المُعدِّل يبقى فارغاً
+            // هذا يحل مشكلة لو قام المدير بالتعديل ثم قام المالك بالتعديل بعده
+            $updateData['edited_by_id'] = null;
+        }
+
+        // نفذ التحديث. حقل user_id الأصلي لن يتغير أبداً
+        $note->update($updateData);
+        // ▲▲▲ نهاية المنطق الجديد ▲▲▲
+
         $this->cancelEdit();
         $this->refreshNotes();
     }
+
 
     public function cancelEdit()
     {
@@ -338,6 +378,7 @@ class Dashboard extends Component
 
     public function deleteNote(int $noteId)
     {
+        $this->authorize('dashboard.manage-notes');
         $note = TenderNote::findOrFail($noteId);
         $this->authorize('delete', $note);
         $note->delete();
@@ -346,7 +387,8 @@ class Dashboard extends Component
 
     public function render()
     {
-        // ✅ تم حذف أعمدة الشراكة القديمة من هنا
+        $this->authorize('dashboard.view'); // للعرض فقط
+
         $columns = ['id', 'name', 'status', 'date_of_submission', 'client_type', 'client_name', 'number', 'assigned_to'];
 
         $eTendersQuery = ETender::select(array_merge($columns, [DB::raw("'e_tender' as tender_type")]));

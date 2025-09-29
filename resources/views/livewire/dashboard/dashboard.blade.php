@@ -105,10 +105,20 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm" role="group">
+                                            {{-- زر العرض يبقى متاحاً لأننا تحققنا من صلاحية dashboard.view على مستوى الصفحة --}}
                                             <button wire:click="showTender('{{ $tender->tender_type }}', {{ $tender->id }}, false)" type="button" class="btn btn-outline-secondary" title="View"><i class="bi bi-eye"></i></button>
-                                            <button wire:click="showTender('{{ $tender->tender_type }}', {{ $tender->id }}, true)" type="button" class="btn btn-outline-primary" title="Edit"><i class="bi bi-pencil-square"></i></button>
-                                            <button wire:click="deleteTender('{{ $tender->tender_type }}', {{ $tender->id }})" wire:confirm="Are you sure you want to delete this tender?" type="button" class="btn btn-outline-danger" title="Delete"><i class="bi bi-trash2-fill"></i></button>
+
+                                            {{-- ✅ تأمين زر التعديل --}}
+                                            <button wire:click="showTender('{{ $tender->tender_type }}', {{ $tender->id }}, true)" type="button" class="btn btn-outline-primary" title="Edit" @cannot('dashboard.edit-tender') disabled @endcannot>
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+
+                                            {{-- ✅ تأمين زر الحذف --}}
+                                            <button wire:click="deleteTender('{{ $tender->tender_type }}', {{ $tender->id }})" wire:confirm="Are you sure you want to delete this tender?" type="button" class="btn btn-outline-danger" title="Delete" @cannot('dashboard.delete-tender') disabled @endcannot>
+                                                <i class="bi bi-trash2-fill"></i>
+                                            </button>
                                         </div>
+
                                     </td>
                                 </tr>
                                 @empty
@@ -193,31 +203,44 @@
                         {{-- Focal Points --}}
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h6 class="mb-0 fw-bold">Focal Points <span class="text-danger">*</span></h6>
-                            @if($isEditMode)<button wire:click.prevent="addFocalPoint" type="button" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus"></i> Add Person</button>@endif
+
+                            @if($isEditMode)
+                            <button wire:click.prevent="addFocalPoint" type="button" class="btn btn-sm btn-outline-primary" @cannot('dashboard.manage-focal-points') disabled @endcannot>
+                                <i class="bi bi-plus"></i> Add Person
+                            </button>
+                            @endif
                         </div>
                         @if($focalPointError)<div class="alert alert-warning alert-dismissible fade show">{{ $focalPointError }}<button type="button" class="btn-close" wire:click="$set('focalPointError', '')"></button></div>@endif
                         @error('focalPoints')<div class="alert alert-danger p-2 mb-3">{{ $message }}</div>@enderror
                         @foreach($focalPoints as $index => $focalPoint)
                         <div class="card mb-3" wire:key="focal-point-{{ $index }}">
                             <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-3"><span class="fw-bold">Person {{ $index + 1 }}</span>@if($isEditMode)<button wire:click.prevent="removeFocalPoint({{ $index }})" type="button" class="btn-close" title="Remove Person"></button>@endif</div>
+                                <div class="d-flex justify-content-between align-items-center mb-3"><span class="fw-bold">Person {{ $index + 1 }}</span>
+                                    @if($isEditMode)
+                                    <button wire:click.prevent="removeFocalPoint({{ $index }})" type="button" class="btn-close" title="Remove Person" @cannot('dashboard.manage-focal-points') disabled @endcannot></button>
+                                    @endif
+                                </div>
                                 <div class="row g-3">
-                                    <div class="col-md-6 col-lg-3"><label class="form-label">Name <span class="text-danger">*</span></label><input type="text" wire:model="focalPoints.{{ $index }}.name" class="form-control @error('focalPoints.'.$index.'.name') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                                    <div class="col-md-6 col-lg-3"><label class="form-label">Phone <span class="text-danger">*</span></label><input type="text" wire:model="focalPoints.{{ $index }}.phone" class="form-control @error('focalPoints.'.$index.'.phone') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.phone')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                                    <div class="col-md-6 col-lg-3"><label class="form-label">Email <span class="text-danger">*</span></label><input type="email" wire:model="focalPoints.{{ $index }}.email" class="form-control @error('focalPoints.'.$index.'.email') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.email')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                                    <div class="col-md-6 col-lg-3"><label class="form-label">Department <span class="text-danger">*</span></label><input type="text" wire:model="focalPoints.{{ $index }}.department" class="form-control @error('focalPoints.'.$index.'.department') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('focalPoints.'.$index.'.department')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                                    <div class="col-12"><label class="form-label">Other Info</label><textarea wire:model="focalPoints.{{ $index }}.other_info" class="form-control" rows="2" @if(!$isEditMode) readonly @endif></textarea></div>
+                                    <div class="col-md-6 col-lg-3"><label class="form-label">Name <span class="text-danger">*</span></label>
+                                        <input type="text" wire:model="focalPoints.{{ $index }}.name" class="form-control @error('focalPoints.'.$index.'.name') is-invalid @enderror" @if(!$isEditMode || auth()->user()->cannot('dashboard.manage-focal-points')) readonly @endif>@error('focalPoints.'.$index.'.name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    </div>
+                                    <div class="col-md-6 col-lg-3"><label class="form-label">Phone <span class="text-danger">*</span></label><input type="text" wire:model="focalPoints.{{ $index }}.phone" class="form-control @error('focalPoints.'.$index.'.phone') is-invalid @enderror" @if(!$isEditMode || auth()->user()->cannot('dashboard.manage-focal-points')) readonly @endif>@error('focalPoints.'.$index.'.phone')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                    <div class="col-md-6 col-lg-3"><label class="form-label">Email <span class="text-danger">*</span></label><input type="email" wire:model="focalPoints.{{ $index }}.email" class="form-control @error('focalPoints.'.$index.'.email') is-invalid @enderror" @if(!$isEditMode || auth()->user()->cannot('dashboard.manage-focal-points')) readonly @endif>@error('focalPoints.'.$index.'.email')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                    <div class="col-md-6 col-lg-3"><label class="form-label">Department <span class="text-danger">*</span></label><input type="text" wire:model="focalPoints.{{ $index }}.department" class="form-control @error('focalPoints.'.$index.'.department') is-invalid @enderror" @if(!$isEditMode || auth()->user()->cannot('dashboard.manage-focal-points')) readonly @endif>@error('focalPoints.'.$index.'.department')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                    <div class="col-12"><label class="form-label">Other Info</label><textarea wire:model="focalPoints.{{ $index }}.other_info" class="form-control" rows="2" @if(!$isEditMode || auth()->user()->cannot('dashboard.manage-focal-points')) readonly @endif></textarea></div>
                                 </div>
                             </div>
                         </div>
                         @endforeach
+
+
 
                         {{-- Partnership Section --}}
                         <hr class="my-4">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h6 class="mb-0 fw-bold">Partnership Details</h6>
                             @if($isEditMode)
-                            <button wire:click.prevent="addPartnership" type="button" class="btn btn-sm btn-outline-primary @if(!$has_third_party) disabled @endif">
+                            <button wire:click.prevent="addPartnership" type="button" class="btn btn-sm btn-outline-primary @if(!$has_third_party) disabled @endif" @cannot('dashboard.manage-partnerships') disabled @endcannot>
                                 <i class="bi bi-plus"></i> Add Partner
                             </button>
                             @endif
@@ -226,8 +249,8 @@
                             <div class="col-12">
                                 <label class="form-label">Is there a third-party partner? <span class="text-danger">*</span></label>
                                 <div class="d-flex align-items-center pt-1">
-                                    <div class="form-check me-4"><input class="form-check-input" type="radio" wire:model.live="has_third_party" value="1" id="dashThirdPartyYes" @if(!$isEditMode) disabled @endif><label class="form-check-label" for="dashThirdPartyYes">Yes</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="radio" wire:model.live="has_third_party" value="0" id="dashThirdPartyNo" @if(!$isEditMode) disabled @endif><label class="form-check-label" for="dashThirdPartyNo">No</label></div>
+                                    <div class="form-check me-4"><input class="form-check-input" type="radio" wire:model.live="has_third_party" value="1" id="dashThirdPartyYes" @if(!$isEditMode || auth()->user()->cannot('dashboard.manage-partnerships')) disabled @endif><label class="form-check-label" for="dashThirdPartyYes">Yes</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="radio" wire:model.live="has_third_party" value="0" id="dashThirdPartyNo" @if(!$isEditMode || auth()->user()->cannot('dashboard.manage-partnerships')) disabled @endif><label class="form-check-label" for="dashThirdPartyNo">No</label></div>
                                 </div>
                             </div>
 
@@ -239,13 +262,17 @@
                             <div class="col-12" wire:key="partnership-{{ $index }}">
                                 <div class="card mb-3">
                                     <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-center mb-3"><span class="fw-bold">Partner {{ $index + 1 }}</span>@if($isEditMode)<button wire:click.prevent="removePartnership({{ $index }})" type="button" class="btn-close" title="Remove Partner"></button>@endif</div>
+                                        <div class="d-flex justify-content-between align-items-center mb-3"><span class="fw-bold">Partner {{ $index + 1 }}</span>
+                                            @if($isEditMode)
+                                            <button wire:click.prevent="removePartnership({{ $index }})" type="button" class="btn-close" title="Remove Partner" @cannot('dashboard.manage-partnerships') disabled @endcannot></button>
+                                            @endif
+                                        </div>
                                         <div class="row g-3">
-                                            <div class="col-md-6"><label class="form-label">Company Name <span class="text-danger">*</span></label><input type="text" wire:model="partnerships.{{ $index }}.company_name" class="form-control @error('partnerships.'.$index.'.company_name') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('partnerships.'.$index.'.company_name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                                            <div class="col-md-6"><label class="form-label">Person Name <span class="text-danger">*</span></label><input type="text" wire:model="partnerships.{{ $index }}.person_name" class="form-control @error('partnerships.'.$index.'.person_name') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('partnerships.'.$index.'.person_name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                                            <div class="col-md-6"><label class="form-label">Phone <span class="text-danger">*</span></label><input type="text" wire:model="partnerships.{{ $index }}.phone" class="form-control @error('partnerships.'.$index.'.phone') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('partnerships.'.$index.'.phone')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                                            <div class="col-md-6"><label class="form-label">Email <span class="text-danger">*</span></label><input type="email" wire:model="partnerships.{{ $index }}.email" class="form-control @error('partnerships.'.$index.'.email') is-invalid @enderror" @if(!$isEditMode) readonly @endif>@error('partnerships.'.$index.'.email')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                                            <div class="col-12"><label class="form-label">Collaboration Details</label><textarea wire:model="partnerships.{{ $index }}.details" class="form-control" rows="2" @if(!$isEditMode) readonly @endif></textarea></div>
+                                            <div class="col-md-6"><label class="form-label">Company Name <span class="text-danger">*</span></label><input type="text" wire:model="partnerships.{{ $index }}.company_name" class="form-control @error('partnerships.'.$index.'.company_name') is-invalid @enderror" @if(!$isEditMode || auth()->user()->cannot('dashboard.manage-partnerships')) readonly @endif>@error('partnerships.'.$index.'.company_name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                            <div class="col-md-6"><label class="form-label">Person Name <span class="text-danger">*</span></label><input type="text" wire:model="partnerships.{{ $index }}.person_name" class="form-control @error('partnerships.'.$index.'.person_name') is-invalid @enderror" @if(!$isEditMode || auth()->user()->cannot('dashboard.manage-partnerships')) readonly @endif>@error('partnerships.'.$index.'.person_name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                            <div class="col-md-6"><label class="form-label">Phone <span class="text-danger">*</span></label><input type="text" wire:model="partnerships.{{ $index }}.phone" class="form-control @error('partnerships.'.$index.'.phone') is-invalid @enderror" @if(!$isEditMode || auth()->user()->cannot('dashboard.manage-partnerships')) readonly @endif>@error('partnerships.'.$index.'.phone')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                            <div class="col-md-6"><label class="form-label">Email <span class="text-danger">*</span></label><input type="email" wire:model="partnerships.{{ $index }}.email" class="form-control @error('partnerships.'.$index.'.email') is-invalid @enderror" @if(!$isEditMode || auth()->user()->cannot('dashboard.manage-partnerships')) readonly @endif>@error('partnerships.'.$index.'.email')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                            <div class="col-12"><label class="form-label">Collaboration Details</label><textarea wire:model="partnerships.{{ $index }}.details" class="form-control" rows="2" @if(!$isEditMode || auth()->user()->cannot('dashboard.manage-partnerships')) readonly @endif></textarea></div>
                                         </div>
                                     </div>
                                 </div>
@@ -253,6 +280,7 @@
                             @endforeach
                             @endif
                         </div>
+
 
                         <hr class="my-4">
 
@@ -289,9 +317,9 @@
                         @if($isEditMode)
                         <div class="mb-4">
                             <label for="newNote" class="form-label fw-bold">Add a new note</label>
-                            <textarea wire:model="newNoteContent" id="newNote" class="form-control @error('newNoteContent') is-invalid @enderror" rows="3" placeholder="Write your note here..."></textarea>
+                            <textarea wire:model="newNoteContent" id="newNote" class="form-control @error('newNoteContent') is-invalid @enderror" rows="3" placeholder="Write your note here..." @cannot('dashboard.manage-notes') disabled @endcannot></textarea>
                             @error('newNoteContent') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            <button wire:click.prevent="addNote" class="btn btn-primary mt-2"><span wire:loading.remove wire:target="addNote">Add Note</span><span wire:loading wire:target="addNote">Adding...</span></button>
+                            <button wire:click.prevent="addNote" class="btn btn-primary mt-2" @cannot('dashboard.manage-notes') disabled @endcannot>Add Note</button>
                         </div>
                         @endif
                         <div class="mb-3">
@@ -305,11 +333,24 @@
                                     @else
                                     <p class="card-text" style="white-space: pre-wrap;">{{ $note->content }}</p>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">By: <strong>{{ $note->user->name ?? 'N/A' }}</strong> | On: {{ $note->created_at->format('d M, Y H:i') }} @if($note->created_at->diffInSeconds($note->updated_at) > 1)<span class="fst-italic">(Edited)</span>@endif</small>
+                                        <small class="text-muted">
+                                            {{-- دائماً اعرض الناشر الأصلي وتاريخ الإنشاء --}}
+                                            By: <strong>{{ $note->user->name ?? 'Original author unknown' }}</strong> |
+                                            On: {{ $note->created_at->format('d M, Y H:i') }}
+
+                                            {{-- ▼▼▼ أضف هذا الشرط لعرض معلومات المُعدِّل إن وجدت ▼▼▼ --}}
+                                            @if ($note->edited_by_id)
+                                            <span class="fst-italic" style="color: #f59e0b; margin-left: 5px;">
+                                                (Edited by: <strong>{{ $note->editor->name ?? 'an admin' }}</strong> on {{ $note->updated_at->format('d M, Y') }})
+                                            </span>
+                                            @endif
+                                        </small>
                                         @if($isEditMode)
                                         @can('update', $note)
-                                        <div><button wire:click.prevent="editNote({{ $note->id }})" class="btn btn-sm btn-link text-primary p-0" title="Edit"><i class="bi bi-pencil"></i></button><button wire:click.prevent="deleteNote({{ $note->id }})" wire:confirm="Are you sure you want to delete this note?" class="btn btn-sm btn-link text-danger p-0 ms-2" title="Delete"><i class="bi bi-trash2"></i></button></div>
-                                        @endcan
+                                        <div>
+                                            <button wire:click.prevent="editNote({{ $note->id }})" class="btn btn-sm btn-link text-primary p-0" title="Edit" @cannot('dashboard.manage-notes') disabled @endcannot><i class="bi bi-pencil"></i></button>
+                                            <button wire:click.prevent="deleteNote({{ $note->id }})" wire:confirm="Are you sure you want to delete this note?" class="btn btn-sm btn-link text-danger p-0 ms-2" title="Delete" @cannot('dashboard.manage-notes') disabled @endcannot><i class="bi bi-trash2"></i></button>
+                                        </div> @endcan
                                         @endif
                                     </div>
                                     @endif
@@ -323,8 +364,9 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" wire:click="$set('showingTenderModal', false)">Close</button>
                         @if($isEditMode)
-                        <button type="submit" class="btn btn-primary">Update Tender</button>
+                        <button type="submit" class="btn btn-primary" @cannot('dashboard.edit-tender') disabled @endcannot>Update Tender</button>
                         @endif
+
                     </div>
                 </form>
             </div>

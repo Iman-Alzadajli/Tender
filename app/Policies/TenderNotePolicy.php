@@ -13,6 +13,9 @@ class TenderNotePolicy
      */
     public function update(User $user, TenderNote $tenderNote): bool
     {
+        if ($user->hasRole('Super-Admin')) {
+            return true;
+        }
         return $user->id === $tenderNote->user_id;
     }
 
@@ -21,6 +24,9 @@ class TenderNotePolicy
      */
     public function delete(User $user, TenderNote $tenderNote): bool
     {
+        if ($user->hasRole('Super-Admin')) {
+            return true;
+        }
         return $user->id === $tenderNote->user_id;
     }
 }

@@ -8,12 +8,15 @@ use Spatie\Permission\Models\Role as SpatieRole; // استخدام اسم مست
 use Spatie\Permission\Models\Permission;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 
 
 #[Layout('layouts.app')]
 class RoleManager extends Component
 {
-    use WithPagination;
+    use WithPagination, AuthorizesRequests;
+    // use WithPagination;
 
     protected $paginationTheme = 'bootstrap';
 
@@ -77,6 +80,8 @@ class RoleManager extends Component
      */
     public function storeRole()
     {
+        $this->authorize('roles.create');
+
         // الخطوة 1: التحقق من صحة البيانات المدخلة
         $validated = $this->validate([
             'roleName' => 'required|string|max:255|unique:roles,name',
@@ -105,6 +110,16 @@ class RoleManager extends Component
     // تعديل 
     public function editRole(SpatieRole $role)
     {
+        if ($role->name === 'Super-Admin') {
+            session()->flash('error', 'The Super-Admin role cannot be edited.');
+            return;
+        }
+
+
+
+        $this->authorize('roles.edit');
+
+
         $this->resetForm(); // نبدأ بتصفير النموذج
         $this->isEditMode = true;
         $this->editingRole = $role;
@@ -122,6 +137,14 @@ class RoleManager extends Component
 
     public function updateRole()
     {
+        if ($this->editingRole && $this->editingRole->name === 'Super-Admin') {
+            abort(403, 'The Super-Admin role cannot be modified.');
+        }
+
+        $this->authorize('roles.edit');
+
+
+
         // قواعد التحقق للتعديل (نسمح بالاسم الحالي)
         $validated = $this->validate([
             'roleName' => 'required|string|max:255|unique:roles,name,' . $this->editingRole->id,
@@ -148,6 +171,14 @@ class RoleManager extends Component
 
     public function confirmDelete(SpatieRole $role)
     {
+
+        if ($role->name === 'Super-Admin') {
+            session()->flash('error', 'The Super-Admin role cannot be deleted.');
+            return;
+        }
+
+        $this->authorize('roles.delete');
+
         // لا يمكن حذف دور لديه مستخدمون
         if ($role->users()->count() > 0) {
             session()->flash('error', 'This role cannot be deleted because it is assigned to one or more users.');
@@ -173,6 +204,13 @@ class RoleManager extends Component
      */
     public function deleteRole()
     {
+
+        if ($this->deletingRole && $this->deletingRole->name === 'Super-Admin') {
+            abort(403, 'The Super-Admin role cannot be deleted.');
+        }
+
+        $this->authorize('roles.delete');
+
         // تحقق إضافي للأمان
         if (!$this->deletingRole) return;
 
@@ -195,6 +233,9 @@ class RoleManager extends Component
      */
     public function render()
     {
+
+        $this->authorize('roles.view');
+
         // جلب كل الصلاحيات من قاعدة البيانات
         $allPermissions = Permission::all();
 

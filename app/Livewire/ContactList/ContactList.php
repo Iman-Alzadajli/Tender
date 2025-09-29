@@ -112,6 +112,8 @@ class ContactList extends Component
 
     public function prepareFocalPointModal($tenderType, $tenderId)
     {
+        $this->authorize('contact-list.add-focal-point');
+
         $this->resetValidation();
         $this->reset(['fp_name', 'fp_phone', 'fp_email', 'fp_department', 'fp_other_info']);
         $this->tenderIdForModal = $tenderId;
@@ -121,6 +123,8 @@ class ContactList extends Component
 
     public function addFocalPoint()
     {
+        $this->authorize('contact-list.add-focal-point');
+
         $this->validate($this->focalPointRules());
         $modelClass = $this->getModelClass($this->tenderTypeForModal);
 
@@ -162,6 +166,8 @@ class ContactList extends Component
 
     public function preparePartnershipModal($tenderType, $tenderId)
     {
+        $this->authorize('contact-list.add-partnership');
+
         $this->resetValidation();
         $this->reset(['p_company_name', 'p_person_name', 'p_phone', 'p_email', 'p_details']);
         $this->tenderIdForModal = $tenderId;
@@ -171,6 +177,8 @@ class ContactList extends Component
 
     public function addPartnership()
     {
+        $this->authorize('contact-list.add-partnership');
+
         $this->validate($this->partnershipRules());
         $modelClass = $this->getModelClass($this->tenderTypeForModal);
 
@@ -238,6 +246,8 @@ class ContactList extends Component
     //pdf 
     public function exportPdf()
     {
+        $this->authorize('contact-list.export');
+
         // 1. جلب جميع المناقصات مع علاقاتها بناءً على الفلاتر
         $tenderModels = [InternalTender::class, ETender::class, OtherTender::class];
         $allTenders = new Collection();
@@ -321,6 +331,8 @@ class ContactList extends Component
 
     public function exportExcel()
     {
+        $this->authorize('contact-list.export');
+
         // 1. جلب جميع المناقصات مع علاقاتها (نفس منطق دالة PDF)
         $tenderModels = [InternalTender::class, ETender::class, OtherTender::class];
         $allTenders = new Collection();
@@ -386,7 +398,7 @@ class ContactList extends Component
         // 3. ترتيب القائمة النهائية
         $sortedContacts = $flatContacts->sortBy('tender_name')->values();
 
-        // 4. ✅ تحميل عرض Excel وتمرير البيانات
+        // 4.  تحميل عرض Excel وتمرير البيانات
         $view = view('livewire.exportfiles.exportexcel', ['tenders' => $sortedContacts])->render();
         $filename = 'Detailed-Contact-Report-' . now()->format('Y-m-d') . '.xls';
 
@@ -397,6 +409,8 @@ class ContactList extends Component
 
     public function render()
     {
+        $this->authorize('contact-list.view');
+
         $tendersQuery = $this->getTendersQuery();
         $uniqueClientTypes = (clone $tendersQuery)->pluck('client_type')->unique()->filter()->sort();
         $tenders = $tendersQuery->orderBy($this->sortBy, $this->sortDir)->paginate(10);

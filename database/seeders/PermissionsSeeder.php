@@ -21,6 +21,12 @@ class PermissionsSeeder extends Seeder
         $permissionsByGroup = [
             'General' => [
                 'dashboard.view',
+                'dashboard.edit-tender',
+                'dashboard.delete-tender',
+                'dashboard.manage-focal-points',
+                'dashboard.manage-partnerships',
+                'dashboard.manage-notes',
+
             ],
             'User Management' => [
                 'users.view',
@@ -92,7 +98,7 @@ class PermissionsSeeder extends Seeder
         if ($adminUser) {
             $adminUser->assignRole($superAdminRole);
         }
-        
+
         // --- (Optional) Create other basic roles for demonstration ---
         Role::firstOrCreate(
             ['name' => 'Viewer'],
@@ -110,9 +116,18 @@ class PermissionsSeeder extends Seeder
             ['description' => 'Can create and manage tenders but not users or roles']
         )->givePermissionTo([
             'dashboard.view',
-            'internal-tenders.view', 'internal-tenders.create', 'internal-tenders.edit', 'internal-tenders.manage-notes',
-            'e-tenders.view', 'e-tenders.create', 'e-tenders.edit', 'e-tenders.manage-notes',
-            'other-tenders.view', 'other-tenders.create', 'other-tenders.edit', 'other-tenders.manage-notes',
+            'internal-tenders.view',
+            'internal-tenders.create',
+            'internal-tenders.edit',
+            'internal-tenders.manage-notes',
+            'e-tenders.view',
+            'e-tenders.create',
+            'e-tenders.edit',
+            'e-tenders.manage-notes',
+            'other-tenders.view',
+            'other-tenders.create',
+            'other-tenders.edit',
+            'other-tenders.manage-notes',
             'contact-list.view',
         ]);
     }
