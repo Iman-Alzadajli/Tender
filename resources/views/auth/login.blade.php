@@ -7,9 +7,9 @@
     <div class="auth-body">
         <!-- Session Status -->
         @if (session('status'))
-            <div class="alert alert-info small" role="alert">
-                {{ session('status') }}
-            </div>
+        <div class="alert alert-info small" role="alert">
+            {{ session('status') }}
+        </div>
         @endif
 
         <form method="POST" action="{{ route('login') }}">
@@ -18,32 +18,32 @@
             <!-- Email -->
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
-                <input id="email" 
-                       class="form-control" 
-                       type="email" 
-                       name="email" 
-                       value="{{ old('email') }}" 
-                       required 
-                       autofocus 
-                       autocomplete="username">
-                
+                <input id="email"
+                    class="form-control"
+                    type="email"
+                    name="email"
+                    value="{{ old('email') }}"
+                    required
+                    autofocus
+                    autocomplete="username">
+
                 @error('email')
-                    <div class="text-danger small mt-1">{{ $message }}</div>
+                <div class="text-danger small mt-1">{{ $message }}</div>
                 @enderror
             </div>
 
             <!-- Password -->
             <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input id="password" 
-                       class="form-control" 
-                       type="password" 
-                       name="password" 
-                       required 
-                       autocomplete="current-password">
-                
+                <input id="password"
+                    class="form-control"
+                    type="password"
+                    name="password"
+                    required
+                    autocomplete="current-password">
+
                 @error('password')
-                    <div class="text-danger small mt-1">{{ $message }}</div>
+                <div class="text-danger small mt-1">{{ $message }}</div>
                 @enderror
             </div>
 
@@ -57,9 +57,9 @@
 
             <div class="d-flex justify-content-between align-items-center">
                 @if (Route::has('password.request'))
-                    <a class="text-gradient text-decoration-none small" href="{{ route('password.request') }}">
-                        Forgot your password?
-                    </a>
+                <a class="text-gradient text-decoration-none small" href="{{ route('password.request') }}">
+                    Forgot your password?
+                </a>
                 @endif
 
 
@@ -69,14 +69,14 @@
                 </button>
             </div>
 
-             <!-- Centered Sign-up Link -->
-            <div class="text-center mt-4">
+            <!-- Centered Sign-up Link -->
+            <!-- <div class="text-center mt-4">
                 <a class="signup-link text-decoration-none" href="{{ route('register') }}">
                     Sign-up
                 </a>
-            </div>
+            </div> -->
 
-             
+
 
         </form>
     </div>

@@ -337,13 +337,13 @@
                                                     @else
                                                     an admin
                                                     @endif
-                                                </strong> on <span class="dynamic-time" data-timestamp="{{ $note->updated_at->toIso8601String() }}" data-format="d M, Y">
+                                                </strong> on <span class="dynamic-time" data-timestamp="{{ $note->updated_at->toIso8601String() }}">
                                                     {{ $note->updated_at->format('d M, Y') }}
                                                 </span>)
                                             </span>
                                             @elseif ($note->updated_at->gt($note->created_at))
                                             <span class="fst-italic" style="margin-left: 5px;">
-                                                (Edited on <span class="dynamic-time" data-timestamp="{{ $note->updated_at->toIso8601String() }}" data-format="d M, Y">
+                                                (Edited on <span class="dynamic-time" data-timestamp="{{ $note->updated_at->toIso8601String() }}">
                                                     {{ $note->updated_at->format('d M, Y') }}
                                                 </span>)
                                             </span>

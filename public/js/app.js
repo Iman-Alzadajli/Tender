@@ -46,29 +46,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initialize burger menu visibility on page load
     updateBurgerMenuVisibility();
+
+
+    
     // دالة لتحويل كل التواريخ في الصفحة
     function convertAllTimestamps() {
-        // تأكد من وجود مكتبة dayjs قبل محاولة استخدامها
-        if (typeof dayjs === 'undefined') {
-            return; // لا تفعل شيئاً إذا لم يتم تحميل المكتبة
-        }
-
-        document.querySelectorAll('.dynamic-time').forEach(function (element) {
-            const timestamp = element.dataset.timestamp;
-            if (timestamp) {
-                let format = 'DD MMM, YYYY hh:mm A'; // الصيغة الافتراضية
-
-                if (element.dataset.format && element.dataset.format === 'd M, Y') {
-                    format = 'DD MMM, YYYY'; // صيغة التاريخ فقط
-                }
-
-                element.textContent = dayjs.utc(timestamp).local().format(format);
-            }
-        });
+    // تأكد من وجود مكتبة dayjs
+    if (typeof dayjs === 'undefined') {
+        // لا تطبع خطأ في كل مرة، فقط انتظر التحميل
+        return;
     }
 
-    // 1. قم بتشغيل الدالة عند تحميل الصفحة
-    convertAllTimestamps();
+    document.querySelectorAll('.dynamic-time').forEach(function (element) {
+        const timestamp = element.dataset.timestamp;
+        if (timestamp) {
+            let format = 'DD MMM, YYYY hh:mm A'; // الصيغة الافتراضية
+            if (element.dataset.format && element.dataset.format === 'd M, Y') {
+                format = 'DD MMM, YYYY';
+            }
+            element.textContent = dayjs.utc(timestamp).local().format(format);
+        }
+    });
+}
+
+// ✅ الخطوة 2: استدعاء الدالة عند تحميل الصفحة لأول مرة
+// هذا يضمن عملها عند التحميل الأول للصفحة
+document.addEventListener('DOMContentLoaded', convertAllTimestamps);
+
+// ✅ الخطوة 3: استدعاء الدالة بعد كل تحديث يقوم به Livewire
+// هذا هو السطر الأهم الذي يحل المشكلة عند التنقل بين الصفحات
+
 
     // 2. مهم جداً لـ Livewire: أعد تشغيل الدالة بعد كل تحديث
     document.addEventListener('livewire:navigated', () => {
