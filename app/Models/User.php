@@ -2,31 +2,33 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+// 1. إضافة الواجهة (Interface) لتفعيل الميزة
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Auth\Passwords\CanResetPassword; // هذا السطر كان ناقصاً
-use App\Notifications\MyResetPasswordNotification; // استيراد رسالة الإشعار المخصصة
-use Spatie\Permission\Traits\HasRoles; // استيراد Trait HasRoles
+use Spatie\Permission\Traits\HasRoles;
+use App\Notifications\MyResetPasswordNotification;
+use App\Notifications\SetupAccountNotification;
 
+// CanResetPassword مدمج في Authenticatable
 
-
-class User extends Authenticatable
+// 2. إضافة 'implements MustVerifyEmail' إلى تعريف الكلاس
+class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, CanResetPassword, HasRoles; // إضافة CanResetPassword
+    // 3. دمج كل الـ Traits المطلوبة
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'token',
+        'token', // ✅ تم الإبقاء على حقل التوكن كما هو
         'status',
         'last_login_at',
     ];
@@ -34,26 +36,36 @@ class User extends Authenticatable
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
         'remember_token',
-        'token',
+        'token', // ✅ تم الإبقاء على حقل التوكن كما هو
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'last_login_at' => 'datetime',
+    ];
+
+    /**
+     * Send the email verification notification.
+     * 
+     * نقوم هنا بتجاوز الدالة الافتراضية لـ Laravel
+     * لإرسال إشعار إعداد الحساب المخصص الخاص بنا.
+     *
+     * @return void
+     */
+    public function sendEmailVerificationNotification()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'last_login_at' => 'datetime',
-        ];
+        $this->notify(new SetupAccountNotification);
     }
 
     /**
@@ -62,7 +74,7 @@ class User extends Authenticatable
      * @param  string  $token
      * @return void
      */
-    public function sendPasswordResetNotification($token) // هذه الدالة كانت ناقصة
+    public function sendPasswordResetNotification($token)
     {
         $this->notify(new MyResetPasswordNotification($token));
     }

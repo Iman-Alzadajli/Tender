@@ -69,7 +69,8 @@ class Users extends Component
 
     public function storeUser()
     {
-        $this->authorize('users.create'); // للإنشاء فقط
+        $this->authorize('users.create');
+
         $validated = $this->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
@@ -77,20 +78,23 @@ class Users extends Component
             'status' => 'required|in:active,inactive',
         ]);
 
+        // إنشاء المستخدم مع كلمة مرور مؤقتة
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => Hash::make(str()->random(20)),
+            'password' => Hash::make(str()->random(30)),
             'status' => $validated['status'],
+            // يمكنك تعيين قيمة ابتدائية للتوكن هنا إذا لزم الأمر، مثلاً:
+            // 'token' => str()->random(40), 
         ]);
 
         $user->assignRole($validated['selectedRole']);
 
-        $token = app('auth.password.broker')->createToken($user);
-        $user->sendPasswordResetNotification($token);
+        // إرسال إيميل التحقق (لتفعيل الحساب)
+        $user->sendEmailVerificationNotification();
 
         $this->showModal = false;
-        session()->flash('message', 'User created successfully. A password setup email has been sent.');
+        session()->flash('message', 'User created successfully. An account activation email has been sent.');
     }
 
     public function editUser($userId)
@@ -108,6 +112,21 @@ class Users extends Component
             $this->showModal = true;
         }
     }
+
+    public function resendVerificationLink($userId)
+    {
+        $this->authorize('users.edit');
+
+        $user = User::find($userId);
+
+        if ($user && !$user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
+            session()->flash('message', 'Verification link has been resent to ' . $user->email);
+        } else {
+            session()->flash('error', 'This user has already been verified.');
+        }
+    }
+
 
     public function updateUser()
     {
@@ -149,7 +168,7 @@ class Users extends Component
     }
 
 
-    
+
     public function deleteUser()
     {
         $this->authorize('users.delete'); // للتسحيل فقط

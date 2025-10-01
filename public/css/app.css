@@ -272,3 +272,16 @@
       display: block;
       background-color: rgba(0, 0, 0, 0.5);
   }
+
+  /* 
+لون زر اعادة ارسال تحقق الايميل 
+*/
+  .btn-outline-primary:hover i,
+  .btn-outline-secondary:hover i,
+  .btn-outline-success:hover i,
+  .btn-outline-danger:hover i,
+  .btn-outline-warning:hover i,
+  .btn-outline-info:hover i,
+  .btn-outline-dark:hover i {
+      color: white;
+  }

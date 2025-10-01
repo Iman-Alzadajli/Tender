@@ -155,7 +155,17 @@
                                                 <div class="col-md-6">
                                                     <div class="form-check">
                                                         <input class="form-check-input" type="checkbox" value="{{ $permission->name }}" id="perm-{{ $permission->id }}" wire:model.defer="selectedPermissions">
-                                                        <label class="form-check-label" for="perm-{{ $permission->id }}">{{ $permission->name }}</label>
+                                                        <label class="form-check-label" for="perm-{{ $permission->id }}">
+                                                            @php
+                                                            // 1. قسم اسم الصلاحية عند النقطة (.)
+                                                            $parts = explode('.', $permission->name);
+                                                            // 2. خذ الجزء الأخير فقط (الفعل)
+                                                            $action = end($parts);
+                                                            // 3. استبدل الشرطة (-) بمسافة واجعل الحرف الأول كبيراً
+                                                            $displayName = Str::title(str_replace('-', ' ', $action));
+                                                            @endphp
+                                                            {{ $displayName }}
+                                                        </label>
                                                     </div>
                                                 </div>
                                                 @endforeach

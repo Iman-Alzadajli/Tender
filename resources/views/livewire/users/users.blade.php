@@ -121,6 +121,23 @@
                                     <i class="bi bi-trash-fill"></i>
                                 </button>
 
+                                @if (!$user->hasVerifiedEmail() && Auth::id() !== $user->id)
+                                <button
+                                    wire:click="resendVerificationLink({{ $user->id }})"
+                                    wire:loading.attr="disabled"
+                                    wire:target="resendVerificationLink({{ $user->id }})"
+                                    class="btn btn-sm btn-outline-success"
+                                    title="Resend Verification Link">
+
+                                    <span wire:loading.remove wire:target="resendVerificationLink({{ $user->id }})">
+                                        <i class="bi bi-envelope-check-fill"></i>
+                                    </span>
+                                    <span wire:loading wire:target="resendVerificationLink({{ $user->id }})">
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    </span>
+                                </button>
+                                @endif
+
 
                                 @endif
                             </div>
@@ -149,7 +166,7 @@
             <div class="modal-content">
                 <form wire:submit.prevent="{{ $isEditMode ? 'updateUser' : 'storeUser' }}">
                     <div class="modal-header">
-                        <h5 class="modal-title">{{ $isEditMode ? 'Edit User' : 'Add New User' }}</h5>
+                        <h5 class="modal-title">{{ $isEditMode ? 'Edit User' : 'Add New User & Verified Email' }}</h5>
                         <button type="button" class="btn-close" wire:click="$set('showModal', false)"></button>
                     </div>
                     <div class="modal-body">
