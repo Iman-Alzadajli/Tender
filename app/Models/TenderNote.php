@@ -53,4 +53,11 @@ class TenderNote extends Model
         // عبر حقل 'edited_by_id'.
         return $this->belongsTo(User::class, 'edited_by_id');
     }
+
+    public function histories()
+{
+    return $this->hasMany(TenderNoteHistory::class)->latest();
+} 
+
+    
 }

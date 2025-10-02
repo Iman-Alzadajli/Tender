@@ -318,11 +318,10 @@
                         @if($mode == 'edit')
                         <div class="mb-4">
                             <label for="newNote" class="form-label fw-bold">Add a new note</label>
-                            <textarea wire:model="newNoteContent" id="newNote" class="form-control @error('newNoteContent') is-invalid @enderror" rows="3" placeholder="Write your note here..." @cannot('e-tenders.manage-notes') disabled @endcannot></textarea>
+                            <textarea wire:model="newNoteContent" id="newNote" class="form-control @error('newNoteContent') is-invalid @enderror" rows="3" placeholder="Write your note here..." @cannot('other-tenders.manage-notes') disabled @endcannot></textarea>
                             @error('newNoteContent') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            <button wire:click.prevent="addNote" class="btn btn-primary mt-2" @cannot('e-tenders.manage-notes') disabled @endcannot>
-                                <span wire:loading.remove wire:target="addNote">Add Note</span>
-                                <span wire:loading wire:target="addNote">Adding...</span>
+                            <button wire:click.prevent="addNote" class="btn btn-primary mt-2" @cannot('other-tenders.manage-notes') disabled @endcannot>
+                                Add Note
                             </button>
                         </div>
                         @endif
@@ -341,43 +340,26 @@
                                     @else
                                     <p class="card-text" style="white-space: pre-wrap;">{{ $note->content }}</p>
                                     <div class="d-flex justify-content-between align-items-center">
-
                                         <small class="text-muted">
-                                            By: <strong>{{ $note->user->name ?? 'Original author' }}</strong> |
-                                            On: <span class="dynamic-time" data-timestamp="{{ $note->created_at->toIso8601String() }}">
-                                                {{ $note->created_at->format('d M, Y H:i') }}
-                                            </span>
-
+                                            By: <strong>{{ $note->user->name ?? 'Original author' }}</strong> | On: {{ $note->created_at->format('d M, Y H:i') }}
                                             @if ($note->edited_by_id)
-                                            <span class="fst-italic" style="color: #f59e0b; margin-left: 5px;">
-                                                (Edited by: <strong>
-                                                    @if ($note->editor)
-                                                    {{ $note->editor->name }}
-                                                    @else
-                                                    an admin
-                                                    @endif
-                                                </strong> on <span class="dynamic-time" data-timestamp="{{ $note->updated_at->toIso8601String() }}" data-format="d M, Y">
-                                                    {{ $note->updated_at->format('d M, Y') }}
-                                                </span>)
-                                            </span>
+                                            <span class="fst-italic text-warning ms-2">(Edited by: <strong>{{ $note->editor->name ?? 'an admin' }}</strong> on {{ $note->updated_at->format('d M, Y') }})</span>
                                             @elseif ($note->updated_at->gt($note->created_at))
-                                            <span class="fst-italic" style="margin-left: 5px;">
-                                                (Edited on <span class="dynamic-time" data-timestamp="{{ $note->updated_at->toIso8601String() }}" data-format="d M, Y">
-                                                    {{ $note->updated_at->format('d M, Y') }}
-                                                </span>)
-                                            </span>
+                                            <span class="fst-italic ms-2">(Edited on {{ $note->updated_at->format('d M, Y') }})</span>
                                             @endif
                                         </small>
-
-
-
                                         @if($mode == 'edit')
-                                        @can('update', $note)
-                                        <div>
-                                            <button wire:click.prevent="editNote({{ $note->id }})" class="btn btn-sm btn-link text-primary p-0" title="Edit"><i class="bi bi-pencil" @cannot('other-tenders.manage-notes') disabled @endcannot></i></button>
-                                            <button wire:click.prevent="deleteNote({{ $note->id }})" wire:confirm="Are you sure you want to delete this note?" class="btn btn-sm btn-link text-danger p-0 ms-2" title="Delete" @cannot('other-tenders.manage-notes') disabled @endcannot><i class="bi bi-trash2"></i></button>
+                                        <div class="btn-group">
+                                            @if((Auth::id() === $note->user_id || Auth::user()->can('notes.view-history')) && $note->histories()->exists())
+                                            <button wire:click.prevent="showHistory({{ $note->id }})" class="btn btn-sm btn-link text-secondary p-0" title="View Edit History"><i class="bi bi-clock-history"></i></button>
+                                            @endif
+                                            @can('update', $note)
+                                            <button wire:click.prevent="editNote({{ $note->id }})" class="btn btn-sm btn-link text-primary p-0 ms-2" title="Edit"><i class="bi bi-pencil"></i></button>
+                                            @endcan
+                                            @can('delete', $note)
+                                            <button wire:click.prevent="deleteNote({{ $note->id }})" wire:confirm="Are you sure?" class="btn btn-sm btn-link text-danger p-0 ms-2" title="Delete"><i class="bi bi-trash2"></i></button>
+                                            @endcan
                                         </div>
-                                        @endcan
                                         @endif
                                     </div>
                                     @endif
@@ -387,8 +369,8 @@
                             <p class="text-muted text-center">No notes yet.</p>
                             @endforelse
                         </div>
-
                         @endif
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" wire:click="$set('showModal', false)">@if($mode == 'view') Close @else Cancel @endif</button>
@@ -404,4 +386,49 @@
         </div>
     </div>
     @endif
+
+    {{-- History Modal --}}
+    @if ($showHistoryModal && $selectedNoteForHistory)
+    <div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit History for Note</h5>
+                    <button type="button" class="btn-close" wire:click="closeHistoryModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <p class="fw-bold">Original Note Content:</p>
+                        <div class="p-3 bg-light border rounded">
+                            <p style="white-space: pre-wrap;">{{ $selectedNoteForHistory->content }}</p>
+                            <small class="text-muted">
+                                By: <strong>{{ $selectedNoteForHistory->user->name ?? 'Original author' }}</strong> on {{ $selectedNoteForHistory->created_at->format('d M, Y H:i') }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="fw-bold">Previous Versions:</h6>
+                    @forelse ($noteHistories as $history)
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <p class="card-text" style="white-space: pre-wrap;">{{ $history->old_content }}</p>
+                            <small class="text-muted">
+                                Edited by: <strong>{{ $history->user->name ?? 'N/A' }}</strong> on {{ $history->created_at->format('d M, Y H:i') }}
+                            </small>
+                        </div>
+                    </div>
+                    @empty
+                    <p class="text-muted text-center">No edit history found for this note.</p>
+                    @endforelse
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" wire:click="closeHistoryModal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
 </div>

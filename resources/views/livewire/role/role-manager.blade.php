@@ -157,12 +157,20 @@
                                                         <input class="form-check-input" type="checkbox" value="{{ $permission->name }}" id="perm-{{ $permission->id }}" wire:model.defer="selectedPermissions">
                                                         <label class="form-check-label" for="perm-{{ $permission->id }}">
                                                             @php
-                                                            // 1. قسم اسم الصلاحية عند النقطة (.)
+                                                            // 1. فصل اسم الصلاحية عند النقطة
                                                             $parts = explode('.', $permission->name);
-                                                            // 2. خذ الجزء الأخير فقط (الفعل)
+                                                            // 2. أخذ الجزء الثاني فقط (مثلاً: 'edit-tender')
                                                             $action = end($parts);
-                                                            // 3. استبدل الشرطة (-) بمسافة واجعل الحرف الأول كبيراً
+                                                            // 3. استبدال الشرطة (-) بمسافة وجعل الحرف الأول كبيراً
                                                             $displayName = Str::title(str_replace('-', ' ', $action));
+
+                                                            // 4. تطبيق الحالات الخاصة التي طلبتِها
+                                                            if ($displayName === 'Edit Tender') {
+                                                            $displayName = 'Edit';
+                                                            }
+                                                            if ($displayName === 'Delete Tender') {
+                                                            $displayName = 'Delete';
+                                                            }
                                                             @endphp
                                                             {{ $displayName }}
                                                         </label>

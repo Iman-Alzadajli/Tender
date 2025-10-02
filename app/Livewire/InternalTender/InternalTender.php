@@ -12,6 +12,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Models\TenderNoteHistory;
+use Illuminate\Support\Facades\Gate;
+
 
 #[Layout('layouts.app')]
 class InternalTender extends Component
@@ -51,6 +54,12 @@ class InternalTender extends Component
     public array $focalPoints = [];
     public $users = [];
     public string $focalPointError = '';
+
+    // history notes هيستوري 
+
+    public bool $showHistoryModal = false;
+    public $noteHistories = [];
+    public ?TenderNote $selectedNoteForHistory = null;
 
     // ✅ خصائص الشراكة الجديدة (كمصفوفة)
     public array $partnerships = [];
@@ -401,6 +410,13 @@ class InternalTender extends Component
         $this->authorize('update', $note);
         $this->validate(['editingNoteContent' => 'required|string']);
 
+        if ($note->content !== $this->editingNoteContent) {
+            $note->histories()->create([
+                'user_id' => Auth::id(),
+                'old_content' => $note->content,
+            ]);
+        }
+
         // ▼▼▼ المنطق الجديد والمهم يبدأ هنا ▼▼▼
         $updateData = ['content' => $this->editingNoteContent];
         $currentUser = Auth::user();
@@ -557,6 +573,28 @@ class InternalTender extends Component
         // 5. إرجاع الملف للمستخدم
         return response()->streamDownload(fn() => print($view), $filename);
     }
+
+    //هيستوري نوتس history nots 
+    public function showHistory(int $noteId)
+    {
+        $note = TenderNote::with(['histories.user'])->findOrFail($noteId);
+
+        if (Gate::denies('view-history', $note)) {
+            return;
+        }
+
+        $this->selectedNoteForHistory = $note;
+        $this->noteHistories = $note->histories;
+        $this->showHistoryModal = true;
+    }
+
+    public function closeHistoryModal()
+    {
+        $this->showHistoryModal = false;
+        $this->noteHistories = [];
+        $this->selectedNoteForHistory = null;
+    }
+
 
 
     public function render()

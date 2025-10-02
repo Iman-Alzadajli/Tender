@@ -15,7 +15,7 @@ class FocalPointO extends Model
      *
      * @var string
      */
-    protected $table = 'focal_points_o'; // افتراضيًا، يمكنك تغييره
+    protected $table = 'focal_points_o'; 
 
     /**
      * The attributes that are mass assignable.
@@ -23,7 +23,7 @@ class FocalPointO extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'other_tender_id', // تم التغيير ليعكس العلاقة الجديدة
+        'other_tender_id', 
         'name',
         'phone',
         'email',

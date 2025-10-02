@@ -26,6 +26,7 @@ class PermissionsSeeder extends Seeder
                 'dashboard.manage-focal-points',
                 'dashboard.manage-partnerships',
                 'dashboard.manage-notes',
+                'notes.view-history',
 
             ],
             'User Management' => [
@@ -33,6 +34,7 @@ class PermissionsSeeder extends Seeder
                 'users.create',
                 'users.edit',
                 'users.delete',
+                'notes.view-history',
             ],
             'Role Management' => [
                 'roles.view',
@@ -49,6 +51,7 @@ class PermissionsSeeder extends Seeder
                 'internal-tenders.manage-partnerships',
                 'internal-tenders.manage-notes',
                 'internal-tenders.export',
+                'notes.view-history',
             ],
             'E-Tender' => [
                 'e-tenders.view',
@@ -59,6 +62,7 @@ class PermissionsSeeder extends Seeder
                 'e-tenders.manage-partnerships',
                 'e-tenders.manage-notes',
                 'e-tenders.export',
+                'notes.view-history',
             ],
             'Other Tender' => [
                 'other-tenders.view',
@@ -69,6 +73,7 @@ class PermissionsSeeder extends Seeder
                 'other-tenders.manage-partnerships',
                 'other-tenders.manage-notes',
                 'other-tenders.export',
+                'notes.view-history',
             ],
             'Contact List' => [
                 'contact-list.view',

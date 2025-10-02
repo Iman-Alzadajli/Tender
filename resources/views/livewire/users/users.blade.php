@@ -159,7 +159,6 @@
         @endif
     </div>
 
-    {{-- ... (بقية النوافذ المنبثقة تبقى كما هي بدون تغيير) ... --}}
     @if ($showModal)
     <div class="modal fade show modal-backdrop-custom" tabindex="-1">
         <div class="modal-dialog">

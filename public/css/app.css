@@ -285,3 +285,20 @@
   .btn-outline-dark:hover i {
       color: white;
   }
+
+
+  /* Custom Badge Colors */
+  .badge-violet {
+      color: #5a2c7d;
+      background-color: #e9d8f5;
+  }
+
+  .badge-green {
+      color: #1a6a4f;
+      background-color: #d2f2e8;
+  }
+
+  .badge-blue {
+      color: #3064b1;
+      background-color: #cfe2ff;
+  }

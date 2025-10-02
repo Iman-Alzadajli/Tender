@@ -233,30 +233,45 @@ class RoleManager extends Component
      */
     public function render()
     {
-
         $this->authorize('roles.view');
 
-        // جلب كل الصلاحيات من قاعدة البيانات
-        $allPermissions = Permission::all();
+        // ✅✅✅ 1. تعريف هيكل المجموعات بشكل يدوي وثابت ✅✅✅
+        $groups = [
+            'General' => ['dashboard.view', 'dashboard.edit-tender', 'dashboard.delete-tender', 'dashboard.manage-focal-points', 'dashboard.manage-partnerships', 'dashboard.manage-notes', 'notes.view-history'],
+            'User' => ['users.view', 'users.create', 'users.edit', 'users.delete'],
+            'Role' => ['roles.view', 'roles.create', 'roles.edit', 'roles.delete'],
+            'Internal Tender' => ['internal-tenders.view', 'internal-tenders.create', 'internal-tenders.edit', 'internal-tenders.delete', 'internal-tenders.manage-focal-points', 'internal-tenders.manage-partnerships', 'internal-tenders.manage-notes', 'internal-tenders.export', 'notes.view-history'],
+            'E-Tender' => ['e-tenders.view', 'e-tenders.create', 'e-tenders.edit', 'e-tenders.delete', 'e-tenders.manage-focal-points', 'e-tenders.manage-partnerships', 'e-tenders.manage-notes', 'e-tenders.export', 'notes.view-history'],
+            'Other Tender' => ['other-tenders.view', 'other-tenders.create', 'other-tenders.edit', 'other-tenders.delete', 'other-tenders.manage-focal-points', 'other-tenders.manage-partnerships', 'other-tenders.manage-notes', 'other-tenders.export', 'notes.view-history'],
+            'Contact List' => ['contact-list.view', 'contact-list.add-focal-point', 'contact-list.add-partnership', 'contact-list.export'],
+        ];
 
-        // تجميع الصلاحيات في مجموعات بناءً على الجزء الأول من اسمها
-        // مثال: 'users.create' و 'users.edit' سيتم وضعهما تحت مجموعة 'users'
-        $permissionGroups = $allPermissions->groupBy(function ($permission) {
-            return explode('.', $permission->name)[0];
-        });
+        // ✅ 2. جلب كل الصلاحيات من قاعدة البيانات مرة واحدة
+        $allPermissions = Permission::all()->keyBy('name');
 
-        //للبحث 
+        // ✅ 3. بناء مصفوفة permissionGroups بناءً على الهيكل الذي عرفناه
+        $permissionGroups = [];
+        foreach ($groups as $groupName => $permissionNames) {
+            $permissionGroup = [];
+            foreach ($permissionNames as $name) {
+                if (isset($allPermissions[$name])) {
+                    $permissionGroup[] = $allPermissions[$name];
+                }
+            }
+            if (!empty($permissionGroup)) {
+                $permissionGroups[$groupName] = collect($permissionGroup);
+            }
+        }
+
+        // --- (بقية الكود يبقى كما هو بدون تغيير) ---
         $rolesQuery = SpatieRole::query()
             ->when($this->search, function ($query) {
                 $query->where('name', 'like', '%' . $this->search . '%')
                     ->orWhere('description', 'like', '%' . $this->search . '%');
             });
 
-        // الخطوة 2: أكمل بناء الاستعلام على نفس المتغير ($rolesQuery)
-        // ثم قم بتنفيذه باستخدام paginate()
         $roles = $rolesQuery->withCount('users')->paginate(6);
 
-        // تمرير البيانات إلى ملف العرض (Blade)
         return view('livewire.role.role-manager', [
             'roles' => $roles,
             'permissionGroups' => $permissionGroups,

@@ -17,7 +17,6 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        // 2. تسجيل السياسة (Policy) الخاصة بالملاحظات
         // هذا يربط مودل TenderNote مع الكلاس TenderNotePolicy
         TenderNote::class => TenderNotePolicy::class,
     ];
@@ -27,10 +26,17 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // 3. تسجيل السياسات التي عرفناها في الأعلى
         $this->registerPolicies();
 
-        // 4. إضافة بوابة الـ Super-Admin
+        // ✅✅✅ هذا هو الكود الجديد الذي أضفناه ✅✅✅
+        Gate::define('view-history', function (User $user, TenderNote $note) {
+            // اسمح للمستخدم برؤية الهيستوري في حالتين:
+            // 1. إذا كان هو المالك الأصلي للملاحظة.
+            // 2. إذا كان يمتلك صلاحية 'notes.view-history'.
+            return $user->id === $note->user_id || $user->can('notes.view-history');
+        });
+        // ✅✅✅ نهاية الكود الجديد ✅✅✅
+
         // هذه الدالة يتم تنفيذها قبل أي تحقق آخر للصلاحيات
         Gate::before(function (User $user, string $ability) {
             // استبدل 'Super-Admin' باسم الدور الفعلي إذا كان مختلفاً

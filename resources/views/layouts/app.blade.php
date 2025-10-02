@@ -109,10 +109,27 @@
 
                 @can('contact-list.view')
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('contact-list') ? 'active' : '' }}" href="{{ route('contact-list') }}">
+                    {{-- 1. الرابط الرئيسي الذي يفتح القائمة المنسدلة --}}
+                    <a class="nav-link {{ request()->routeIs('contact-list.*') ? '' : 'collapsed' }}" href="#contact-list-submenu" data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('contact-list.*') ? 'true' : 'false' }}" aria-controls="contact-list-submenu">
                         <i class="bi-card-list"></i>
                         <span>Contact List</span>
+                        <i class="bi bi-chevron-down sidebar-arrow"></i>
                     </a>
+                    {{-- 2. القائمة الفرعية المنسدلة --}}
+                    <div class="collapse {{ request()->routeIs('contact-list.*') ? 'show' : '' }}" id="contact-list-submenu">
+                        <ul class="nav flex-column ms-3">
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('contact-list.focal-points') ? 'active' : '' }}" href="{{ route('contact-list.focal-points') }}">
+                                    <span>Focal Points</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('contact-list.partnerships') ? 'active' : '' }}" href="{{ route('contact-list.partnerships') }}">
+                                    <span>Partnerships</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
                 @endcan
 

@@ -8,6 +8,8 @@ use App\Livewire\ETender\ETender;
 use App\Livewire\OtherTenderPlatform\OtherTenderPlatform;
 use App\Livewire\Users\Users;
 use App\Livewire\ContactList\ContactList;
+use App\Livewire\ContactList\FocalPointsList;
+use App\Livewire\ContactList\PartnershipsList;
 use App\Livewire\Role\RoleManager;
 
 
@@ -44,7 +46,15 @@ Route::middleware('auth')->group(function () {
 
 
     // Contact List Page
-    Route::get('/contact-list', ContactList::class)->name('contact-list')->middleware('can:contact-list.view');
+    // Route::get('/contact-list', ContactList::class)->name('contact-list')->middleware('can:contact-list.view');
+
+    Route::get('/contact-list/focal-points', FocalPointsList::class)
+        ->name('contact-list.focal-points')
+        ->middleware('can:contact-list.view'); // استخدام نفس صلاحية العرض
+
+    Route::get('/contact-list/partnerships', PartnershipsList::class)
+        ->name('contact-list.partnerships')
+        ->middleware('can:contact-list.view');
     // Role Management Page
     // Route::get('/roles', RoleManager::class)->name('roles');
     // أضف middleware الحماية هنا
