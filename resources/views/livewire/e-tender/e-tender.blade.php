@@ -318,9 +318,9 @@
                         @if($mode == 'edit')
                         <div class="mb-4">
                             <label for="newNote" class="form-label fw-bold">Add a new note</label>
-                            <textarea wire:model="newNoteContent" id="newNote" class="form-control @error('newNoteContent') is-invalid @enderror" rows="3" placeholder="Write your note here..." @cannot('other-tenders.manage-notes') disabled @endcannot></textarea>
+                            <textarea wire:model="newNoteContent" id="newNote" class="form-control @error('newNoteContent') is-invalid @enderror" rows="3" placeholder="Write your note here..." @cannot('e-tenders.manage-notes') disabled @endcannot></textarea>
                             @error('newNoteContent') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            <button wire:click.prevent="addNote" class="btn btn-primary mt-2" @cannot('other-tenders.manage-notes') disabled @endcannot>
+                            <button wire:click.prevent="addNote" class="btn btn-primary mt-2" @cannot('e-tenders.manage-notes') disabled @endcannot>
                                 Add Note
                             </button>
                         </div>
@@ -350,16 +350,49 @@
                                         </small>
                                         @if($mode == 'edit')
                                         <div class="btn-group">
-                                            @if((Auth::id() === $note->user_id || Auth::user()->can('notes.view-history')) && $note->histories()->exists())
-                                            <button wire:click.prevent="showHistory({{ $note->id }})" class="btn btn-sm btn-link text-secondary p-0" title="View Edit History"><i class="bi bi-clock-history"></i></button>
+                                            @php
+                                            $canViewHistory = Auth::user()->can('notes.view-history');
+                                            $canManageNotes = Auth::user()->can('notes.manage-notes');
+                                            $isNoteOwner = (Auth::id() === $note->user_id);
+                                            $isSuperAdmin = Auth::user()->hasRole('super-admin');
+                                            @endphp
+
+                                            {{-- الأزرار تظهر فقط إذا كان المستخدم لديه صلاحية 'notes.manage-notes' أو كان هو مالك التعليق --}}
+                                            @if ($canManageNotes || $isNoteOwner || $canViewHistory)
+                                            {{-- زر الهيستوري: يظهر فقط إذا كان للتعليق سجل تعديلات AND (المستخدم هو المالك OR لديه صلاحية رؤية الهيستوري) --}}
+                                            @if ($note->histories()->exists() && ($isNoteOwner || $canViewHistory))
+                                            <button
+                                                wire:click.prevent="showHistory({{ $note->id }})"
+                                                class="btn btn-sm btn-link text-secondary p-0"
+                                                title="View Edit History">
+                                                <i class="bi bi-clock-history"></i>
+                                            </button>
                                             @endif
-                                            @can('update', $note)
-                                            <button wire:click.prevent="editNote({{ $note->id }})" class="btn btn-sm btn-link text-primary p-0 ms-2" title="Edit"><i class="bi bi-pencil"></i></button>
-                                            @endcan
-                                            @can('delete', $note)
-                                            <button wire:click.prevent="deleteNote({{ $note->id }})" wire:confirm="Are you sure?" class="btn btn-sm btn-link text-danger p-0 ms-2" title="Delete"><i class="bi bi-trash2"></i></button>
-                                            @endcan
+
+                                            {{-- زر التعديل: يظهر فقط إذا كان المستخدم هو المالك OR هو سوبر أدمن --}}
+                                            @if ($isNoteOwner || $isSuperAdmin)
+                                            <button
+                                                wire:click.prevent="editNote({{ $note->id }})"
+                                                class="btn btn-sm btn-link text-primary p-0 ms-2"
+                                                title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            @endif
+
+                                            {{-- زر الحذف: يظهر فقط إذا كان المستخدم هو المالك --}}
+                                            @if ($isNoteOwner)
+                                            <button
+                                                wire:click.prevent="deleteNote({{ $note->id }})"
+                                                wire:confirm="Are you sure?"
+                                                class="btn btn-sm btn-link text-danger p-0 ms-2"
+                                                title="Delete">
+                                                <i class="bi bi-trash2"></i>
+                                            </button>
+                                            @endif
+                                            @endif
                                         </div>
+
+
                                         @endif
                                     </div>
                                     @endif
@@ -398,7 +431,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <p class="fw-bold">Original Note Content:</p>
+                        <p class="fw-bold">Current Note Content:</p>
                         <div class="p-3 bg-light border rounded">
                             <p style="white-space: pre-wrap;">{{ $selectedNoteForHistory->content }}</p>
                             <small class="text-muted">
@@ -409,7 +442,7 @@
 
                     <hr>
 
-                    <h6 class="fw-bold">Previous Versions:</h6>
+                    <h6 class="fw-bold">Previous Note Versions:</h6>
                     @forelse ($noteHistories as $history)
                     <div class="card mb-3">
                         <div class="card-body">

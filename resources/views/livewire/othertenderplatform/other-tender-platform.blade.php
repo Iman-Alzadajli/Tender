@@ -288,6 +288,8 @@
                             @if($status === 'Awarded to Others (loss)')<div class="col-md-6"><label class="form-label">Awarded Price <span class="text-danger">*</span></label><input type="number" step="0.01" wire:model="awarded_price" class="form-control @error('awarded_price') is-invalid @enderror" @if($mode=='view' ) readonly @endif>@error('awarded_price')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>@endif
                             @if($status === 'Cancel')<div class="col-md-6"><label class="form-label">Reason of Cancel <span class="text-danger">*</span></label><textarea wire:model="reason_of_cancel" class="form-control @error('reason_of_cancel') is-invalid @enderror" rows="1" @if($mode=='view' ) readonly @endif></textarea>@error('reason_of_cancel')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>@endif
                         </div>
+
+                        
                         {{-- Notes Section --}}
                         @if($mode != 'add')
                         <hr class="my-4">
@@ -381,7 +383,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <p class="fw-bold">Original Note Content:</p>
+                        <p class="fw-bold">Current Note Content:</p>
                         <div class="p-3 bg-light border rounded">
                             <p style="white-space: pre-wrap;">{{ $selectedNoteForHistory->content }}</p>
                             <small class="text-muted">
@@ -392,7 +394,7 @@
 
                     <hr>
 
-                    <h6 class="fw-bold">Previous Versions:</h6>
+                    <h6 class="fw-bold">Previous Note Versions:</h6>
                     @forelse ($noteHistories as $history)
                     <div class="card mb-3">
                         <div class="card-body">

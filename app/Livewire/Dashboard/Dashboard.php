@@ -14,6 +14,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Arr;
+use App\Models\TenderNoteHistory;
+use Illuminate\Support\Facades\Gate;
 
 class Dashboard extends Component
 {
@@ -47,7 +49,7 @@ class Dashboard extends Component
     public array $focalPoints = [];
     public string $focalPointError = '';
 
-    // ✅ خصائص الشراكة الجديدة (كمصفوفة)
+    //  خصائص الشراكة الجديدة (كمصفوفة)
     public array $partnerships = [];
     public string $partnershipError = '';
 
@@ -62,6 +64,12 @@ class Dashboard extends Component
     public string $newNoteContent = '';
     public ?int $editingNoteId = null;
     public string $editingNoteContent = '';
+
+    // history notes هيستوري 
+
+    public bool $showHistoryModal = false;
+    public $noteHistories = [];
+    public ?TenderNote $selectedNoteForHistory = null;
 
     public function mount()
     {
@@ -98,7 +106,7 @@ class Dashboard extends Component
             'submitted_price' => ['nullable', 'numeric', 'min:0', Rule::requiredIf($this->status === 'Under Evaluation')],
             'awarded_price' => ['nullable', 'numeric', 'min:0', Rule::requiredIf($this->status === 'Awarded to Others (loss)')],
 
-            // ✅ قواعد التحقق الجديدة للشركاء
+            //  قواعد التحقق الجديدة للشركاء
             'partnerships' => [Rule::requiredIf($this->has_third_party), 'array'],
             'partnerships.*.company_name' => 'required|string|max:255',
             'partnerships.*.person_name' => 'required|string|max:255',
@@ -342,7 +350,7 @@ class Dashboard extends Component
     public function updateNote(int $noteId)
     {
         $this->authorize('dashboard.manage-notes');
-        $this->authorize('other-tenders.manage-notes');
+        $this->authorize('dashboard.manage-notes');
         $note = TenderNote::findOrFail($noteId);
         $this->authorize('update', $note);
         $this->validate(['editingNoteContent' => 'required|string']);
@@ -384,6 +392,29 @@ class Dashboard extends Component
         $note->delete();
         $this->refreshNotes();
     }
+
+
+    //هيستوري نوتس history nots 
+    public function showHistory(int $noteId)
+    {
+        $note = TenderNote::with(['histories.user'])->findOrFail($noteId);
+
+        if (Gate::denies('view-history', $note)) {
+            return;
+        }
+
+        $this->selectedNoteForHistory = $note;
+        $this->noteHistories = $note->histories;
+        $this->showHistoryModal = true;
+    }
+
+    public function closeHistoryModal()
+    {
+        $this->showHistoryModal = false;
+        $this->noteHistories = [];
+        $this->selectedNoteForHistory = null;
+    }
+
 
     public function render()
     {

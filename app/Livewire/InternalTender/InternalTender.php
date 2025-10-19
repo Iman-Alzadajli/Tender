@@ -188,7 +188,7 @@ class InternalTender extends Component
         $this->focalPoints = array_values($this->focalPoints);
     }
 
-    // ✅✅✅ دوال الشراكة الجديدة ✅✅✅
+    //  دوال الشراكة الجديدة
     public function addPartnership(): void
     {
         $this->authorize('internal-tenders.manage-partnerships');
@@ -212,10 +212,10 @@ class InternalTender extends Component
     public function prepareModal(string $mode, ?int $tenderId = null): void
     {
         if ($mode === 'add') {
-            $this->authorize('other-tenders.create');
+            $this->authorize('internal-tenders.create');
         }
         if ($mode === 'edit') {
-            $this->authorize('other-tenders.edit');
+            $this->authorize('internal-tenders.edit');
         }
         $this->resetValidation();
         $this->resetForm();
@@ -291,7 +291,7 @@ class InternalTender extends Component
         $this->partnerships = $tender->partnerships->toArray();
     }
 
-    // ✅ الكود بعد التعديل (النسخة الكاملة والصحيحة)
+    
     public function save(): void
     {
         if ($this->mode === 'add') {
@@ -405,7 +405,7 @@ class InternalTender extends Component
 
     public function updateNote(int $noteId)
     {
-        $this->authorize('other-tenders.manage-notes');
+        $this->authorize('internal-tenders.manage-notes');
         $note = TenderNote::findOrFail($noteId);
         $this->authorize('update', $note);
         $this->validate(['editingNoteContent' => 'required|string']);

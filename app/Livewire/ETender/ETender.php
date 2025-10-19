@@ -218,10 +218,10 @@ class ETender extends Component
     public function prepareModal(string $mode, ?int $tenderId = null): void
     {
         if ($mode === 'add') {
-            $this->authorize('other-tenders.create');
+            $this->authorize('e-tenders.create');
         }
         if ($mode === 'edit') {
-            $this->authorize('other-tenders.edit');
+            $this->authorize('e-tenders.edit');
         }
         $this->resetValidation();
         $this->resetForm();
@@ -542,7 +542,7 @@ class ETender extends Component
 
     public function updateNote(int $noteId)
     {
-        $this->authorize('other-tenders.manage-notes');
+        $this->authorize('e-tenders.manage-notes');
         $note = TenderNote::findOrFail($noteId);
         $this->authorize('update', $note);
         $this->validate(['editingNoteContent' => 'required|string']);

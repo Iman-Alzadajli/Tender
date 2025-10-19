@@ -312,9 +312,9 @@
                         @if($mode == 'edit')
                         <div class="mb-4">
                             <label for="newNote" class="form-label fw-bold">Add a new note</label>
-                            <textarea wire:model="newNoteContent" id="newNote" class="form-control @error('newNoteContent') is-invalid @enderror" rows="3" placeholder="Write your note here..." @cannot('other-tenders.manage-notes') disabled @endcannot></textarea>
+                            <textarea wire:model="newNoteContent" id="newNote" class="form-control @error('newNoteContent') is-invalid @enderror" rows="3" placeholder="Write your note here..." @cannot('internal-tenders.manage-notes') disabled @endcannot></textarea>
                             @error('newNoteContent') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            <button wire:click.prevent="addNote" class="btn btn-primary mt-2" @cannot('other-tenders.manage-notes') disabled @endcannot>
+                            <button wire:click.prevent="addNote" class="btn btn-primary mt-2" @cannot('internal-tenders.manage-notes') disabled @endcannot>
                                 Add Note
                             </button>
                         </div>
@@ -392,7 +392,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <p class="fw-bold">Original Note Content:</p>
+                        <p class="fw-bold">Current Note Content:</p>
                         <div class="p-3 bg-light border rounded">
                             <p style="white-space: pre-wrap;">{{ $selectedNoteForHistory->content }}</p>
                             <small class="text-muted">
@@ -403,7 +403,7 @@
 
                     <hr>
 
-                    <h6 class="fw-bold">Previous Versions:</h6>
+                    <h6 class="fw-bold">Previous Note Versions:</h6>
                     @forelse ($noteHistories as $history)
                     <div class="card mb-3">
                         <div class="card-body">
