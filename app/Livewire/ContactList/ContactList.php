@@ -409,7 +409,7 @@ class ContactList extends Component
 
     public function render()
     {
-        $this->authorize('contact-list.view');
+        // $this->authorize('contact-list.view');
 
         $tendersQuery = $this->getTendersQuery();
         $uniqueClientTypes = (clone $tendersQuery)->pluck('client_type')->unique()->filter()->sort();

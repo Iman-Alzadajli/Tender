@@ -6,19 +6,16 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\InternalTender\FocalPoint as InternalTenderFocalPoint;
 use App\Models\ETender\FocalPointE as ETenderFocalPoint;
 use App\Models\OtherTenderPlatform\FocalPointO as OtherTenderFocalPoint;
-
 use Barryvdh\DomPDF\Facade\Pdf;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\SimpleExport;
-
 
 #[Layout('layouts.app')]
 class FocalPointsList extends Component
 {
-    use WithPagination;
+    use WithPagination, AuthorizesRequests;
 
     protected $paginationTheme = 'bootstrap';
 
@@ -51,6 +48,12 @@ class FocalPointsList extends Component
     public ?string $deletingFocalPointType = null;
     public ?string $deletingFocalPointName = '';
 
+    public function mount()
+    {
+        // ✅ التحقق من صلاحية العرض عند تحميل الصفحة
+        $this->authorize('focal-points.view');
+    }
+
     public function updating($property)
     {
         if (in_array($property, ['search', 'clientFilter', 'clientTypeFilter'])) {
@@ -70,6 +73,9 @@ class FocalPointsList extends Component
 
     public function editFocalPoint($id, $type, $phone = null, $email = null)
     {
+        // ✅ التحقق من صلاحية التعديل
+        $this->authorize('focal-points.edit');
+
         // ✅ استخدام phone و email للبحث عن سجل فعلي بدلاً من الاعتماد على ID فقط
         $normalizedType = $this->normalizeType($type);
 
@@ -110,6 +116,9 @@ class FocalPointsList extends Component
 
     public function updateFocalPoint()
     {
+        // ✅ التحقق من صلاحية التعديل
+        $this->authorize('focal-points.edit');
+
         $this->validate([
             'fp_name' => 'required|string|max:255',
             'fp_phone' => 'required|regex:/^(?:[9720+])[0-9]{7,12}$/',
@@ -163,6 +172,9 @@ class FocalPointsList extends Component
 
     public function confirmDelete($id, $type, $phone = null, $email = null)
     {
+        // ✅ التحقق من صلاحية الحذف
+        $this->authorize('focal-points.delete');
+
         // ✅ استخدام phone و email للبحث عن سجل فعلي
         $normalizedType = $this->normalizeType($type);
 
@@ -191,6 +203,9 @@ class FocalPointsList extends Component
 
     public function deleteFocalPoint()
     {
+        // ✅ التحقق من صلاحية الحذف
+        $this->authorize('focal-points.delete');
+
         if (!$this->deletingFocalPointType) {
             session()->flash('error', 'No focal point type specified.');
             $this->showDeleteModal = false;
@@ -236,10 +251,6 @@ class FocalPointsList extends Component
         $this->resetValidation();
     }
 
-
-
-
-
     /**
      * ✅ دالة تطبيع نوع الـ type
      */
@@ -268,15 +279,12 @@ class FocalPointsList extends Component
         };
     }
 
-    // public function exportPdf()
-    // {
-    //     session()->flash('error', 'PDF export is not implemented yet.');
-    // }
-
     public function exportPdf()
     {
+        // ✅ التحقق من صلاحية التصدير
+        $this->authorize('focal-points.export');
+
         try {
-            // استخدم getExportData() بدل getFocalPointsForRender()
             $data = $this->getExportData();
 
             $pdf = Pdf::loadView('livewire.exportfiles.focalpoints-pdf', [
@@ -294,8 +302,10 @@ class FocalPointsList extends Component
 
     public function exportExcel()
     {
+        // ✅ التحقق من صلاحية التصدير
+        $this->authorize('focal-points.export');
+
         try {
-            // استخدم getExportData() بدل getFocalPointsForRender()
             $data = $this->getExportData();
 
             $view = view('livewire.exportfiles.focalpoints-excel', [
@@ -394,16 +404,11 @@ class FocalPointsList extends Component
         return $queryBuilder->orderBy($this->sortBy, $this->sortDir)->get();
     }
 
-
-
-
-
-
-
-
-
     public function render()
     {
+        // ✅ التحقق من صلاحية العرض في الـ render أيضاً
+        $this->authorize('focal-points.view');
+
         // ✅ استعلامات لكل نوع مع إضافة client_type
         $internalFpQuery = DB::table('focal_points')
             ->join('internal_tenders', 'focal_points.internal_tender_id', '=', 'internal_tenders.id')

@@ -7,12 +7,13 @@ use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use App\Models\Partnership;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 #[Layout('layouts.app')]
 class PartnershipsList extends Component
 {
-    use WithPagination;
+    use WithPagination, AuthorizesRequests;
 
     protected $paginationTheme = 'bootstrap';
 
@@ -42,6 +43,12 @@ class PartnershipsList extends Component
     public ?int $deletingPartnershipId = null;
     public ?string $deletingPartnershipName = '';
 
+    public function mount()
+    {
+        // ✅ التحقق من صلاحية العرض عند تحميل الصفحة
+        $this->authorize('partnerships.view');
+    }
+
     public function updating($property)
     {
         if (in_array($property, ['search', 'clientFilter', 'clientTypeFilter'])) {
@@ -61,6 +68,9 @@ class PartnershipsList extends Component
 
     public function editPartnership($id, $phone = null, $email = null)
     {
+        // ✅ التحقق من صلاحية التعديل
+        $this->authorize('partnerships.edit');
+
         // ✅ استخدام phone و email للبحث عن سجل فعلي
         $partnership = Partnership::where('phone', $phone)
             ->where('email', $email)
@@ -89,6 +99,9 @@ class PartnershipsList extends Component
 
     public function updatePartnership()
     {
+        // ✅ التحقق من صلاحية التعديل
+        $this->authorize('partnerships.edit');
+
         $validatedData = $this->validate([
             'p_company_name' => 'required|string|max:255',
             'p_person_name' => 'required|string|max:255',
@@ -135,6 +148,9 @@ class PartnershipsList extends Component
 
     public function confirmDelete($id, $phone = null, $email = null)
     {
+        // ✅ التحقق من صلاحية الحذف
+        $this->authorize('partnerships.delete');
+
         // ✅ استخدام phone و email للبحث عن سجل فعلي
         $partnership = Partnership::where('phone', $phone)
             ->where('email', $email)
@@ -152,6 +168,9 @@ class PartnershipsList extends Component
 
     public function deletePartnership()
     {
+        // ✅ التحقق من صلاحية الحذف
+        $this->authorize('partnerships.delete');
+
         $partnership = Partnership::find($this->deletingPartnershipId);
         if ($partnership) {
             $partnership->delete();
@@ -181,6 +200,9 @@ class PartnershipsList extends Component
      */
     public function exportPdf()
     {
+        // ✅ التحقق من صلاحية التصدير
+        $this->authorize('partnerships.export');
+
         try {
             $data = $this->getExportData();
 
@@ -202,6 +224,9 @@ class PartnershipsList extends Component
      */
     public function exportExcel()
     {
+        // ✅ التحقق من صلاحية التصدير
+        $this->authorize('partnerships.export');
+
         try {
             $data = $this->getExportData();
 
@@ -320,6 +345,9 @@ class PartnershipsList extends Component
 
     public function render()
     {
+        // ✅ التحقق من صلاحية العرض في الـ render أيضاً
+        $this->authorize('partnerships.view');
+
         $queryBuilder = $this->buildBaseQuery();
         
         // الحصول على قيم الفلترة

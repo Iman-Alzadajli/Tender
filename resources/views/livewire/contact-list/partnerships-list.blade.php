@@ -25,12 +25,27 @@
         <div class="card-body">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                 <div class="d-flex gap-2">
+                    {{-- ✅ زر Export PDF مع التحقق من الصلاحية --}}
+                    @can('partnerships.export')
                     <button wire:click="exportPdf" class="btn btn-danger">
                         <div wire:loading wire:target="exportPdf" class="spinner-border spinner-border-sm"></div><i class="bi bi-file-earmark-pdf-fill me-2"></i>Export PDF
                     </button>
+                    @else
+                    <button class="btn btn-danger" style="opacity: 0.5; cursor: not-allowed;" title="No permission" disabled>
+                        <i class="bi bi-file-earmark-pdf-fill me-2"></i>Export PDF
+                    </button>
+                    @endcan
+
+                    {{-- ✅ زر Export Excel مع التحقق من الصلاحية --}}
+                    @can('partnerships.export')
                     <button wire:click="exportExcel" class="btn btn-success">
                         <div wire:loading wire:target="exportExcel" class="spinner-border spinner-border-sm"></div><i class="bi bi-file-earmark-excel-fill me-2"></i>Export Excel
                     </button>
+                    @else
+                    <button class="btn btn-success" style="opacity: 0.5; cursor: not-allowed;" title="No permission" disabled>
+                        <i class="bi bi-file-earmark-excel-fill me-2"></i>Export Excel
+                    </button>
+                    @endcan
                 </div>
                 <div class="d-flex flex-column flex-md-row gap-2 flex-grow-1 justify-content-end">
                     <div class="input-group" style="max-width: 350px;">
@@ -96,14 +111,29 @@
                         <td>{{ $p->phone }}</td>
                         <td>{{ $p->email }}</td>
                         <td>
+                            {{-- ✅ زر Edit مع التحقق من الصلاحية --}}
+                            @can('partnerships.edit')
                             <button wire:click="editPartnership({{ $p->id }}, '{{ $p->phone }}', '{{ $p->email }}')"
                                 class="btn btn-sm btn-outline-primary" title="Edit">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
+                            @else
+                            <button class="btn btn-sm btn-outline-primary" style="opacity: 0.5; cursor: not-allowed;" title="No permission" disabled>
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            @endcan
+
+                            {{-- ✅ زر Delete مع التحقق من الصلاحية --}}
+                            @can('partnerships.delete')
                             <button wire:click="confirmDelete({{ $p->id }}, '{{ $p->phone }}', '{{ $p->email }}')"
                                 class="btn btn-sm btn-outline-danger" title="Delete">
                                 <i class="bi bi-trash-fill"></i>
                             </button>
+                            @else
+                            <button class="btn btn-sm btn-outline-danger" style="opacity: 0.5; cursor: not-allowed;" title="No permission" disabled>
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                            @endcan
                         </td>
                     </tr>
                     @empty

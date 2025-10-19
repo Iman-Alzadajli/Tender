@@ -74,7 +74,6 @@ class PermissionsSeeder extends Seeder
                 'other-tenders.export',
                 'notes.view-history',
             ],
-            // ✅ تم إزالة Contact List Management
             'Focal Points Management' => [
                 'focal-points.view',
                 'focal-points.edit',

@@ -9,9 +9,7 @@
     <title>TMS</title>
 
     <!-- logo-->
-
     <link id="favicon" rel="icon" href="imgs/logo2.png" type="image/x-icon" />
-
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -22,24 +20,11 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
-    <!-- dashboared -->
-
-    <!-- Scripts -->
-    <!-- @vite(['resources/css/app.css', 'resources/js/app.js']) -->
-
-
-
-
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('/css/app.css') }}">
 
-    <!-- Custom Styles -->
-    <!-- @vite(['resources/css/app.css', 'resources/js/app.js']) -->
-
-
     @livewireStyles
-    @stack('styles') <!-- hover on cards -->
-
+    @stack('styles')
 </head>
 
 <body>
@@ -50,9 +35,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <a href="{{ route('dashboard') }}" class="sidebar-brand">
-                <!-- <i class="bi bi-layers"></i> -->
                 <img src="{{ asset('imgs/logo2.png') }}" alt="logo" class="logo">
-
             </a>
         </div>
 
@@ -77,8 +60,6 @@
                 </li>
                 @endcan
 
-
-
                 @can('e-tenders.view')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('e-tender') ? 'active' : '' }}" href="{{ route('e-tender') }}">
@@ -87,7 +68,6 @@
                     </a>
                 </li>
                 @endcan
-
 
                 @can('other-tenders.view')
                 <li class="nav-item">
@@ -107,31 +87,37 @@
                 </li>
                 @endcan
 
-                @can('contact-list.view')
+                {{-- ✅ تحديث قسم Contact List لاستخدام الصلاحيات الجديدة --}}
+                @if(auth()->user()->canAny(['focal-points.view', 'partnerships.view']))
                 <li class="nav-item">
-                    {{-- 1. الرابط الرئيسي الذي يفتح القائمة المنسدلة --}}
                     <a class="nav-link {{ request()->routeIs('contact-list.*') ? '' : 'collapsed' }}" href="#contact-list-submenu" data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('contact-list.*') ? 'true' : 'false' }}" aria-controls="contact-list-submenu">
                         <i class="bi-card-list"></i>
                         <span>Contact List</span>
                         <i class="bi bi-chevron-down sidebar-arrow"></i>
                     </a>
-                    {{-- 2. القائمة الفرعية المنسدلة --}}
                     <div class="collapse {{ request()->routeIs('contact-list.*') ? 'show' : '' }}" id="contact-list-submenu">
                         <ul class="nav flex-column ms-3">
+                            {{-- ✅ يظهر Focal Points فقط لمن لديه الصلاحية --}}
+                            @can('focal-points.view')
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('contact-list.focal-points') ? 'active' : '' }}" href="{{ route('contact-list.focal-points') }}">
                                     <span>Focal Points</span>
                                 </a>
                             </li>
+                            @endcan
+
+                            {{-- ✅ يظهر Partnerships فقط لمن لديه الصلاحية --}}
+                            @can('partnerships.view')
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('contact-list.partnerships') ? 'active' : '' }}" href="{{ route('contact-list.partnerships') }}">
                                     <span>Partnerships</span>
                                 </a>
                             </li>
+                            @endcan
                         </ul>
                     </div>
                 </li>
-                @endcan
+                @endif
 
                 @can('roles.view')
                 <li class="nav-item">
@@ -142,10 +128,7 @@
                 </li>
                 @endcan
 
-
             </ul>
-
-
         </nav>
     </div>
 
@@ -198,27 +181,17 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Sidebar Script (app.js)  -->
-    <!-- <script src="{{ asset('/js/app.js') }}"></script> -->
-
-    <!-- script of dashboared -->
-    @stack('scripts')
-
-
-
     @livewireScripts
 
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
 
-    <!-- الخطوة 2: تفعيل الإضافات (داخل وسم script ) -->
     <script>
         dayjs.extend(window.dayjs_plugin_utc);
         dayjs.extend(window.dayjs_plugin_timezone);
     </script>
 
-    <!-- الخطوة 3: تحميل ملف app.js الخاص بك (مرة واحدة فقط وفي المكان الصحيح) -->
     <script src="{{ asset('/js/app.js') }}"></script>
 </body>
 

@@ -25,12 +25,27 @@
         <div class="card-body">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                 <div class="d-flex gap-2">
+                    {{-- ✅ زر Export PDF مع التحقق من الصلاحية --}}
+                    @can('focal-points.export')
                     <button wire:click="exportPdf" class="btn btn-danger">
                         <div wire:loading wire:target="exportPdf" class="spinner-border spinner-border-sm"></div><i class="bi bi-file-earmark-pdf-fill me-2"></i>Export PDF
                     </button>
+                    @else
+                    <button class="btn btn-danger" style="opacity: 0.5; cursor: not-allowed;" title="No permission" disabled>
+                        <i class="bi bi-file-earmark-pdf-fill me-2"></i>Export PDF
+                    </button>
+                    @endcan
+
+                    {{-- ✅ زر Export Excel مع التحقق من الصلاحية --}}
+                    @can('focal-points.export')
                     <button wire:click="exportExcel" class="btn btn-success">
                         <div wire:loading wire:target="exportExcel" class="spinner-border spinner-border-sm"></div><i class="bi bi-file-earmark-excel-fill me-2"></i>Export Excel
                     </button>
+                    @else
+                    <button class="btn btn-success" style="opacity: 0.5; cursor: not-allowed;" title="No permission" disabled>
+                        <i class="bi bi-file-earmark-excel-fill me-2"></i>Export Excel
+                    </button>
+                    @endcan
                 </div>
                 <div class="d-flex flex-column flex-md-row gap-2 flex-grow-1 justify-content-end">
                     <div class="input-group" style="max-width: 350px;">
@@ -84,16 +99,29 @@
                         <td>{{ $fp->phone }}</td>
                         <td>{{ $fp->email }}</td>
                         <td>
-                            {{-- ✅ تمرير phone و email بالإضافة إلى id و type --}}
+                            {{-- ✅ زر Edit مع التحقق من الصلاحية --}}
+                            @can('focal-points.edit')
                             <button wire:click="editFocalPoint({{ $fp->id }}, '{{ str_replace(' ', '_', strtolower($fp->tender_type_label)) }}', '{{ $fp->phone }}', '{{ $fp->email }}')"
                                 class="btn btn-sm btn-outline-primary" title="Edit">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
+                            @else
+                            <button class="btn btn-sm btn-outline-primary" style="opacity: 0.5; cursor: not-allowed;" title="No permission" disabled>
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            @endcan
+
+                            {{-- ✅ زر Delete مع التحقق من الصلاحية --}}
+                            @can('focal-points.delete')
                             <button wire:click="confirmDelete({{ $fp->id }}, '{{ str_replace(' ', '_', strtolower($fp->tender_type_label)) }}', '{{ $fp->phone }}', '{{ $fp->email }}')"
                                 class="btn btn-sm btn-outline-danger" title="Delete">
                                 <i class="bi bi-trash-fill"></i>
                             </button>
-
+                            @else
+                            <button class="btn btn-sm btn-outline-danger" style="opacity: 0.5; cursor: not-allowed;" title="No permission" disabled>
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                            @endcan
                         </td>
                     </tr>
                     @empty
