@@ -10,6 +10,11 @@ use App\Models\InternalTender\FocalPoint as InternalTenderFocalPoint;
 use App\Models\ETender\FocalPointE as ETenderFocalPoint;
 use App\Models\OtherTenderPlatform\FocalPointO as OtherTenderFocalPoint;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\SimpleExport;
+
+
 #[Layout('layouts.app')]
 class FocalPointsList extends Component
 {
@@ -67,9 +72,9 @@ class FocalPointsList extends Component
     {
         // ✅ استخدام phone و email للبحث عن سجل فعلي بدلاً من الاعتماد على ID فقط
         $normalizedType = $this->normalizeType($type);
-        
+
         $modelClass = $this->getFocalPointModelClass($normalizedType);
-        
+
         if (!$modelClass) {
             session()->flash('error', 'Invalid focal point type.');
             return;
@@ -94,11 +99,11 @@ class FocalPointsList extends Component
         $this->fp_email = $focalPoint->email;
         $this->fp_department = $focalPoint->department;
         $this->fp_other_info = $focalPoint->other_info;
-        
+
         // حفظ القيم الأصلية لتحديد السجلات المكررة
         $this->original_phone = $focalPoint->phone;
         $this->original_email = $focalPoint->email;
-        
+
         $this->resetValidation();
         $this->showEditModal = true;
     }
@@ -133,7 +138,7 @@ class FocalPointsList extends Component
 
         foreach ($types as $type) {
             $modelClass = $this->getFocalPointModelClass($type);
-            
+
             if (!$modelClass) continue;
 
             // البحث عن جميع السجلات المكررة بناءً على phone و email الأصليين
@@ -160,9 +165,9 @@ class FocalPointsList extends Component
     {
         // ✅ استخدام phone و email للبحث عن سجل فعلي
         $normalizedType = $this->normalizeType($type);
-        
+
         $modelClass = $this->getFocalPointModelClass($normalizedType);
-        
+
         if (!$modelClass) {
             session()->flash('error', 'Invalid focal point type.');
             return;
@@ -193,7 +198,7 @@ class FocalPointsList extends Component
         }
 
         $modelClass = $this->getFocalPointModelClass($this->deletingFocalPointType);
-        
+
         if (!$modelClass) {
             session()->flash('error', 'Invalid focal point type.');
             $this->showDeleteModal = false;
@@ -217,12 +222,23 @@ class FocalPointsList extends Component
     {
         $this->showEditModal = false;
         $this->reset([
-            'fp_name', 'fp_phone', 'fp_email', 'fp_department', 'fp_other_info', 
-            'editingFocalPoint', 'editingFocalPointId', 'editingFocalPointType',
-            'original_phone', 'original_email'
+            'fp_name',
+            'fp_phone',
+            'fp_email',
+            'fp_department',
+            'fp_other_info',
+            'editingFocalPoint',
+            'editingFocalPointId',
+            'editingFocalPointType',
+            'original_phone',
+            'original_email'
         ]);
         $this->resetValidation();
     }
+
+
+
+
 
     /**
      * ✅ دالة تطبيع نوع الـ type
@@ -230,7 +246,7 @@ class FocalPointsList extends Component
     private function normalizeType($type)
     {
         $type = strtolower(trim($type));
-        
+
         if (str_contains($type, 'internal') || $type === 'internal_tender') {
             return 'internal_tender';
         } elseif (str_contains($type, 'e-') || $type === 'e_tender') {
@@ -238,7 +254,7 @@ class FocalPointsList extends Component
         } elseif (str_contains($type, 'other') || $type === 'other_tender') {
             return 'other_tender';
         }
-        
+
         return $type;
     }
 
@@ -252,29 +268,64 @@ class FocalPointsList extends Component
         };
     }
 
+    // public function exportPdf()
+    // {
+    //     session()->flash('error', 'PDF export is not implemented yet.');
+    // }
+
     public function exportPdf()
     {
-        session()->flash('error', 'PDF export is not implemented yet.');
+        try {
+            // استخدم getExportData() بدل getFocalPointsForRender()
+            $data = $this->getExportData();
+
+            $pdf = Pdf::loadView('livewire.exportfiles.focalpoints-pdf', [
+                'focalPoints' => $data
+            ])->setPaper('a4', 'landscape');
+
+            return response()->streamDownload(
+                fn() => print($pdf->output()),
+                'FocalPoints-Report-' . date('Y-m-d') . '.pdf'
+            );
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error generating PDF: ' . $e->getMessage());
+        }
     }
 
     public function exportExcel()
     {
-        session()->flash('error', 'Excel export is not implemented yet.');
+        try {
+            // استخدم getExportData() بدل getFocalPointsForRender()
+            $data = $this->getExportData();
+
+            $view = view('livewire.exportfiles.focalpoints-excel', [
+                'focalPoints' => $data
+            ])->render();
+
+            $filename = 'FocalPoints-Report-' . date('Y-m-d') . '.xls';
+
+            return response()->streamDownload(
+                fn() => print($view),
+                $filename
+            );
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error generating Excel: ' . $e->getMessage());
+        }
     }
 
-    public function render()
+    private function getExportData()
     {
         // ✅ استعلامات لكل نوع مع إضافة client_type
         $internalFpQuery = DB::table('focal_points')
             ->join('internal_tenders', 'focal_points.internal_tender_id', '=', 'internal_tenders.id')
             ->select(
-                'focal_points.id', 
-                'focal_points.name', 
-                'focal_points.phone', 
-                'focal_points.email', 
-                'focal_points.department', 
-                'focal_points.created_at', 
-                'internal_tenders.client_name', 
+                'focal_points.id',
+                'focal_points.name',
+                'focal_points.phone',
+                'focal_points.email',
+                'focal_points.department',
+                'focal_points.created_at',
+                'internal_tenders.client_name',
                 'internal_tenders.client_type',
                 DB::raw("'Internal Tender' as tender_type_label")
             );
@@ -282,13 +333,13 @@ class FocalPointsList extends Component
         $eTenderFpQuery = DB::table('focal_point_e_s')
             ->join('e_tenders', 'focal_point_e_s.e_tender_id', '=', 'e_tenders.id')
             ->select(
-                'focal_point_e_s.id', 
-                'focal_point_e_s.name', 
-                'focal_point_e_s.phone', 
-                'focal_point_e_s.email', 
-                'focal_point_e_s.department', 
-                'focal_point_e_s.created_at', 
-                'e_tenders.client_name', 
+                'focal_point_e_s.id',
+                'focal_point_e_s.name',
+                'focal_point_e_s.phone',
+                'focal_point_e_s.email',
+                'focal_point_e_s.department',
+                'focal_point_e_s.created_at',
+                'e_tenders.client_name',
                 'e_tenders.client_type',
                 DB::raw("'E-Tender' as tender_type_label")
             );
@@ -296,20 +347,20 @@ class FocalPointsList extends Component
         $otherFpQuery = DB::table('focal_points_o')
             ->join('other_tenders', 'focal_points_o.other_tender_id', '=', 'other_tenders.id')
             ->select(
-                'focal_points_o.id', 
-                'focal_points_o.name', 
-                'focal_points_o.phone', 
-                'focal_points_o.email', 
-                'focal_points_o.department', 
-                'focal_points_o.created_at', 
-                'other_tenders.client_name', 
+                'focal_points_o.id',
+                'focal_points_o.name',
+                'focal_points_o.phone',
+                'focal_points_o.email',
+                'focal_points_o.department',
+                'focal_points_o.created_at',
+                'other_tenders.client_name',
                 'other_tenders.client_type',
                 DB::raw("'Other Tender' as tender_type_label")
             );
 
         // دمج جميع الاستعلامات
         $focalPointsQuery = $internalFpQuery->union($eTenderFpQuery)->union($otherFpQuery);
-        
+
         // ✅ تجميع السجلات المكررة بناءً على phone و email
         $groupedQuery = DB::query()->fromSub($focalPointsQuery, 'focal_points_sub')
             ->select(
@@ -331,14 +382,103 @@ class FocalPointsList extends Component
         $queryBuilder->when($this->search, function ($query) {
             $query->where(function ($subQuery) {
                 $subQuery->where('name', 'like', '%' . $this->search . '%')
-                         ->orWhere('email', 'like', '%' . $this->search . '%')
-                         ->orWhere('phone', 'like', '%' . $this->search . '%')
-                         ->orWhere('client_name', 'like', '%' . $this->search . '%')
-                         ->orWhere('client_type', 'like', '%' . $this->search . '%');
+                    ->orWhere('email', 'like', '%' . $this->search . '%')
+                    ->orWhere('phone', 'like', '%' . $this->search . '%')
+                    ->orWhere('client_name', 'like', '%' . $this->search . '%')
+                    ->orWhere('client_type', 'like', '%' . $this->search . '%');
             });
         })
-        ->when($this->clientFilter, fn($q) => $q->where('client_name', $this->clientFilter))
-        ->when($this->clientTypeFilter, fn($q) => $q->where('client_type', $this->clientTypeFilter));
+            ->when($this->clientFilter, fn($q) => $q->where('client_name', $this->clientFilter))
+            ->when($this->clientTypeFilter, fn($q) => $q->where('client_type', $this->clientTypeFilter));
+
+        return $queryBuilder->orderBy($this->sortBy, $this->sortDir)->get();
+    }
+
+
+
+
+
+
+
+
+
+    public function render()
+    {
+        // ✅ استعلامات لكل نوع مع إضافة client_type
+        $internalFpQuery = DB::table('focal_points')
+            ->join('internal_tenders', 'focal_points.internal_tender_id', '=', 'internal_tenders.id')
+            ->select(
+                'focal_points.id',
+                'focal_points.name',
+                'focal_points.phone',
+                'focal_points.email',
+                'focal_points.department',
+                'focal_points.created_at',
+                'internal_tenders.client_name',
+                'internal_tenders.client_type',
+                DB::raw("'Internal Tender' as tender_type_label")
+            );
+
+        $eTenderFpQuery = DB::table('focal_point_e_s')
+            ->join('e_tenders', 'focal_point_e_s.e_tender_id', '=', 'e_tenders.id')
+            ->select(
+                'focal_point_e_s.id',
+                'focal_point_e_s.name',
+                'focal_point_e_s.phone',
+                'focal_point_e_s.email',
+                'focal_point_e_s.department',
+                'focal_point_e_s.created_at',
+                'e_tenders.client_name',
+                'e_tenders.client_type',
+                DB::raw("'E-Tender' as tender_type_label")
+            );
+
+        $otherFpQuery = DB::table('focal_points_o')
+            ->join('other_tenders', 'focal_points_o.other_tender_id', '=', 'other_tenders.id')
+            ->select(
+                'focal_points_o.id',
+                'focal_points_o.name',
+                'focal_points_o.phone',
+                'focal_points_o.email',
+                'focal_points_o.department',
+                'focal_points_o.created_at',
+                'other_tenders.client_name',
+                'other_tenders.client_type',
+                DB::raw("'Other Tender' as tender_type_label")
+            );
+
+        // دمج جميع الاستعلامات
+        $focalPointsQuery = $internalFpQuery->union($eTenderFpQuery)->union($otherFpQuery);
+
+        // ✅ تجميع السجلات المكررة بناءً على phone و email
+        $groupedQuery = DB::query()->fromSub($focalPointsQuery, 'focal_points_sub')
+            ->select(
+                DB::raw('MIN(id) as id'),
+                DB::raw('MIN(name) as name'),
+                'phone',
+                'email',
+                DB::raw('MIN(department) as department'),
+                DB::raw('MIN(created_at) as created_at'),
+                DB::raw('MIN(client_name) as client_name'),
+                DB::raw('MIN(client_type) as client_type'),
+                DB::raw('MIN(tender_type_label) as tender_type_label')
+            )
+            ->groupBy('phone', 'email');
+
+        // تطبيق الفلترة والبحث
+        $queryBuilder = DB::query()->fromSub($groupedQuery, 'grouped_focal_points');
+
+        $queryBuilder->when($this->search, function ($query) {
+            $query->where(function ($subQuery) {
+                $subQuery->where('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('email', 'like', '%' . $this->search . '%')
+                    ->orWhere('phone', 'like', '%' . $this->search . '%')
+                    ->orWhere('client_name', 'like', '%' . $this->search . '%')
+                    ->orWhere('client_type', 'like', '%' . $this->search . '%');
+            });
+        })
+            ->when($this->clientFilter, fn($q) => $q->where('client_name', $this->clientFilter))
+            ->when($this->clientTypeFilter, fn($q) => $q->where('client_type', $this->clientTypeFilter));
 
         // الحصول على قيم الفلترة
         $clients = (clone $queryBuilder)->pluck('client_name')->unique()->filter()->sort();
