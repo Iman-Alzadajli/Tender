@@ -27,7 +27,6 @@ class PermissionsSeeder extends Seeder
                 'dashboard.manage-partnerships',
                 'dashboard.manage-notes',
                 'notes.view-history',
-
             ],
             'User Management' => [
                 'users.view',
@@ -75,11 +74,18 @@ class PermissionsSeeder extends Seeder
                 'other-tenders.export',
                 'notes.view-history',
             ],
-            'Contact List' => [
-                'contact-list.view',
-                'contact-list.add-focal-point',
-                'contact-list.add-partnership',
-                'contact-list.export',
+            // ✅ تم إزالة Contact List Management
+            'Focal Points Management' => [
+                'focal-points.view',
+                'focal-points.edit',
+                'focal-points.delete',
+                'focal-points.export',
+            ],
+            'Partnerships Management' => [
+                'partnerships.view',
+                'partnerships.edit',
+                'partnerships.delete',
+                'partnerships.export',
             ],
         ];
 
@@ -98,13 +104,12 @@ class PermissionsSeeder extends Seeder
         $superAdminRole->givePermissionTo(Permission::all());
 
         // --- Assign Super-Admin role to the first user (or a specific user) ---
-        // This is useful for initial setup. Change the email if needed.
-        $adminUser = User::first(); // Or use User::where('email', 'your-email@example.com')->first();
+        $adminUser = User::first();
         if ($adminUser) {
             $adminUser->assignRole($superAdminRole);
         }
 
-        // --- (Optional) Create other basic roles for demonstration ---
+        // --- Create other basic roles for demonstration ---
         Role::firstOrCreate(
             ['name' => 'Viewer'],
             ['description' => 'Can only view data, cannot make changes']
@@ -113,7 +118,8 @@ class PermissionsSeeder extends Seeder
             'internal-tenders.view',
             'e-tenders.view',
             'other-tenders.view',
-            'contact-list.view',
+            'focal-points.view',
+            'partnerships.view',
         ]);
 
         Role::firstOrCreate(
@@ -133,7 +139,10 @@ class PermissionsSeeder extends Seeder
             'other-tenders.create',
             'other-tenders.edit',
             'other-tenders.manage-notes',
-            'contact-list.view',
+            'focal-points.view',
+            'focal-points.edit',
+            'partnerships.view',
+            'partnerships.edit',
         ]);
     }
 }
